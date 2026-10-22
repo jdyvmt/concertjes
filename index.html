@@ -279,9 +279,10 @@
             <form id="concertForm" onsubmit="handleFormSubmit(event)" class="p-6 overflow-y-auto space-y-4 flex-1">
                 <input type="hidden" id="concertId">
 
-                <div>
+                <div class="relative">
                     <label class="block text-xs font-medium text-slate-300 mb-1">Artiest / Band <span class="text-rose-400">*</span></label>
-                    <input type="text" id="formArtist" required placeholder="bijv. Arctic Monkeys" class="w-full px-3.5 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-slate-100 text-sm focus:outline-none focus:border-indigo-500">
+                    <input type="text" id="formArtist" oninput="handleArtistAutocomplete(this, 'formArtistDropdown')" required placeholder="bijv. Arctic Monkeys" autocomplete="off" class="w-full px-3.5 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-slate-100 text-sm focus:outline-none focus:border-indigo-500">
+                    <div id="formArtistDropdown" class="hidden absolute left-0 right-0 top-full mt-1 bg-slate-800 border border-slate-700 rounded-xl shadow-xl z-50 max-h-40 overflow-y-auto"></div>
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -700,23 +701,62 @@
             toggleRatingVisibility();
         };
 
+        // Artist Autocomplete Helper
+        window.handleArtistAutocomplete = function(inputEl, dropdownId) {
+            const val = inputEl.value.trim().toLowerCase();
+            const dropdown = document.getElementById(dropdownId);
+            if (!dropdown) return;
+
+            if (!val) {
+                dropdown.classList.add('hidden');
+                return;
+            }
+
+            const uniqueArtists = [];
+            const set = new Set();
+            concerts.forEach(c => {
+                if (c.artist && c.artist.toLowerCase().includes(val) && !set.has(c.artist.toLowerCase())) {
+                    set.add(c.artist.toLowerCase());
+                    uniqueArtists.push(c.artist);
+                }
+            });
+
+            if (uniqueArtists.length === 0) {
+                dropdown.classList.add('hidden');
+                return;
+            }
+
+            dropdown.innerHTML = uniqueArtists.map(artist => `
+                <div onclick="selectArtistSuggestion('${escapeHtml(artist)}', '${inputEl.id}', '${dropdownId}')" class="px-3.5 py-2 hover:bg-slate-700/80 cursor-pointer text-xs flex items-center text-slate-100 border-b border-slate-700/50 last:border-0">
+                    <i class="fa-solid fa-microphone text-indigo-400 text-[10px] mr-2"></i> ${escapeHtml(artist)}
+                </div>
+            `).join('');
+            dropdown.classList.remove('hidden');
+        };
+
+        window.selectArtistSuggestion = function(artist, inputId, dropdownId) {
+            const inputEl = document.getElementById(inputId);
+            if (inputEl) inputEl.value = artist;
+            const dropdown = document.getElementById(dropdownId);
+            if (dropdown) dropdown.classList.add('hidden');
+        };
+
         // Venue & Festival Autocomplete + Location Memory Helpers
         window.handleVenueAutocomplete = function(inputEl, dropdownId, cityInputId, countryInputId) {
             const val = inputEl.value.trim().toLowerCase();
             const dropdown = document.getElementById(dropdownId);
             if (!dropdown) return;
 
-            // Auto-fill city/country if exact or known venue match is found
             if (val) {
                 const match = concerts.find(c => c.venue && c.venue.toLowerCase() === val);
                 if (match) {
                     if (cityInputId) {
                         const cityEl = document.getElementById(cityInputId);
-                        if (cityEl && !cityEl.dataset.userEdited) cityEl.value = match.city || '';
+                        if (cityEl) cityEl.value = match.city || '';
                     }
                     if (countryInputId) {
                         const countryEl = document.getElementById(countryInputId);
-                        if (countryEl && !countryEl.dataset.userEdited) countryEl.value = match.country || '';
+                        if (countryEl) countryEl.value = match.country || '';
                     }
                 }
             }
@@ -726,7 +766,6 @@
                 return;
             }
 
-            // Get unique venues matching search
             const uniqueVenues = [];
             const map = new Map();
             concerts.forEach(c => {
@@ -800,10 +839,10 @@
 
         // Close dropdowns on outside click
         document.addEventListener('click', function(e) {
-            ['formVenueDropdown', 'formFestivalDropdown', 'bulkVenueDropdown', 'bulkFestivalDropdown'].forEach(id => {
-                const el = document.getElementById(id);
-                if (el && !el.contains(e.target) && !e.target.oninput) {
-                    el.classList.add('hidden');
+            const activeDropdowns = document.querySelectorAll('[id$="Dropdown"]');
+            activeDropdowns.forEach(dropdown => {
+                if (!dropdown.contains(e.target) && !e.target.oninput) {
+                    dropdown.classList.add('hidden');
                 }
             });
         });
@@ -1037,6 +1076,8 @@
         window.addBulkArtistRow = function() {
             bulkRowCounter++;
             const rowId = `bulkArtistRow_${bulkRowCounter}`;
+            const artistInputId = `bulkArtistInput_${bulkRowCounter}`;
+            const artistDropdownId = `bulkArtistDropdown_${bulkRowCounter}`;
             const festivalDate = document.getElementById('bulkFestivalDate').value || new Date().toISOString().split('T')[0];
             const container = document.getElementById('bulkArtistsContainer');
 
@@ -1054,9 +1095,10 @@
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <div class="sm:col-span-2">
+                    <div class="sm:col-span-2 relative">
                         <label class="block text-[11px] text-slate-400 mb-1">Artiest / Band <span class="text-rose-400">*</span></label>
-                        <input type="text" data-field="artist" required placeholder="bijv. Queens of the Stone Age" class="w-full px-3 py-1.5 bg-slate-900 border border-slate-700 rounded-lg text-slate-100 text-xs focus:outline-none focus:border-purple-500">
+                        <input type="text" id="${artistInputId}" data-field="artist" oninput="handleArtistAutocomplete(this, '${artistDropdownId}')" required placeholder="bijv. Queens of the Stone Age" autocomplete="off" class="w-full px-3 py-1.5 bg-slate-900 border border-slate-700 rounded-lg text-slate-100 text-xs focus:outline-none focus:border-purple-500">
+                        <div id="${artistDropdownId}" class="hidden absolute left-0 right-0 top-full mt-1 bg-slate-800 border border-slate-700 rounded-xl shadow-xl z-50 max-h-36 overflow-y-auto"></div>
                     </div>
                     <div>
                         <label class="block text-[11px] text-slate-400 mb-1">Specifieke Datum</label>
@@ -1328,7 +1370,7 @@
             const planned = concerts.filter(c => c.status === 'PLANNED');
             const uniqueArtists = new Set(concerts.map(c => c.artist?.trim().toLowerCase())).size;
 
-            // Unique venues calculation (combining venue names and festival names)
+            // Unique venues calculation
             const uniqueLocationsSet = new Set();
             concerts.forEach(c => {
                 if (c.venue) uniqueLocationsSet.add(c.venue.trim().toLowerCase());
