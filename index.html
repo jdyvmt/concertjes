@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Concertjes</title>
+    <title>Concertjes - Mijn Concertarchief</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -55,29 +55,37 @@
 
     <!-- Header Navigation -->
     <header class="border-b border-slate-800 bg-slate-950/80 backdrop-blur-md sticky top-0 z-30">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-2">
             <div class="flex items-center gap-3">
                 <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center text-white shadow-lg shadow-indigo-500/30">
                     <i class="fa-solid fa-guitar text-xl"></i>
                 </div>
                 <div>
                     <h1 class="font-bold text-lg leading-tight tracking-wide bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">Concertjes</h1>
-                    <p class="text-xs text-slate-400">Mijn persoonlijke concertarchief</p>
+                    <p class="text-xs text-slate-400 hidden sm:block">Mijn persoonlijke concertarchief</p>
                 </div>
             </div>
 
-            <div class="flex items-center gap-2 sm:gap-4">
+            <div class="flex items-center gap-2 sm:gap-3">
                 <!-- Data Source Indicator & Config -->
-                <button id="configFirebaseBtn" onclick="openFirebaseModal()" class="flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-lg border transition-all duration-200 border-slate-700 bg-slate-800/80 hover:bg-slate-700 text-slate-300">
+                <button id="configFirebaseBtn" onclick="openFirebaseModal()" class="flex items-center gap-2 px-3 py-2 text-xs font-medium rounded-xl border transition-all duration-200 border-slate-700 bg-slate-800/80 hover:bg-slate-700 text-slate-300">
                     <span id="syncStatusDot" class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
-                    <span id="syncStatusText" class="hidden sm:inline">Demo / Lokaal</span>
+                    <span id="syncStatusText" class="hidden md:inline">Demo / Lokaal</span>
                     <i class="fa-solid fa-gear text-slate-400 ml-1"></i>
                 </button>
 
-                <!-- New Concert Button -->
-                <button onclick="openConcertModal()" class="flex items-center gap-2 px-4 py-2 text-xs sm:text-sm font-semibold rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white shadow-md shadow-indigo-600/30 transition-all active:scale-95">
+                <!-- Festival Bulk Input Button -->
+                <button onclick="openFestivalBulkModal()" class="flex items-center gap-2 px-3 py-2 text-xs sm:text-sm font-semibold rounded-xl bg-purple-600/90 hover:bg-purple-600 text-white shadow-md shadow-purple-600/20 transition-all active:scale-95">
+                    <i class="fa-solid fa-tent"></i>
+                    <span class="hidden sm:inline">Festival Bulkinvoer</span>
+                    <span class="sm:hidden">Festival</span>
+                </button>
+
+                <!-- New Single Concert Button -->
+                <button onclick="openConcertModal()" class="flex items-center gap-2 px-3.5 py-2 text-xs sm:text-sm font-semibold rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white shadow-md shadow-indigo-600/30 transition-all active:scale-95">
                     <i class="fa-solid fa-plus"></i>
-                    <span>Nieuw Concert</span>
+                    <span class="hidden sm:inline">Nieuw Concert</span>
+                    <span class="sm:hidden">Concert</span>
                 </button>
             </div>
         </div>
@@ -163,9 +171,14 @@
                 </div>
                 <h3 class="text-lg font-semibold text-slate-300 mb-1">Geen concerten gevonden</h3>
                 <p class="text-slate-500 text-sm max-w-md mb-6">Voeg je eerste concert toe of pas je zoekfilters aan om de resultaten te zien.</p>
-                <button onclick="openConcertModal()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-medium rounded-xl text-sm transition-colors">
-                    <i class="fa-solid fa-plus mr-1"></i> Voeg Concert Toe
-                </button>
+                <div class="flex flex-wrap justify-center gap-3">
+                    <button onclick="openConcertModal()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-medium rounded-xl text-sm transition-colors">
+                        <i class="fa-solid fa-plus mr-1"></i> Voeg Concert Toe
+                    </button>
+                    <button onclick="openFestivalBulkModal()" class="px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white font-medium rounded-xl text-sm transition-colors">
+                        <i class="fa-solid fa-tent mr-1"></i> Festival Bulkinvoer
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -231,7 +244,7 @@
 
                 <div class="bg-slate-800/60 rounded-2xl p-5 border border-slate-800 flex flex-col">
                     <h3 class="text-base font-semibold text-slate-200 mb-4 flex items-center gap-2">
-                        <i class="fa-solid fa-location-dot text-rose-400"></i> Meest Bezochte Locaties
+                        <i class="fa-solid fa-location-dot text-rose-400"></i> Meest Bezochte Locaties / Festivals
                     </h3>
                     <div class="flex-1 min-h-[260px] relative">
                         <canvas id="chartVenues"></canvas>
@@ -251,7 +264,7 @@
 
     </main>
 
-    <!-- Modal: Add/Edit Concert -->
+    <!-- Modal: Add/Edit Single Concert -->
     <div id="concertModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             <div class="px-6 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-950/50">
@@ -274,7 +287,7 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-medium text-slate-300 mb-1">Datum <span class="text-rose-400">*</span></label>
-                        <input type="date" id="formDate" required class="w-full px-3.5 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-slate-100 text-sm focus:outline-none focus:border-indigo-500">
+                        <input type="date" id="formDate" onchange="autoUpdateStatusFromDate('formDate', 'formStatus')" required class="w-full px-3.5 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-slate-100 text-sm focus:outline-none focus:border-indigo-500">
                     </div>
                     <div>
                         <label class="block text-xs font-medium text-slate-300 mb-1">Status</label>
@@ -347,6 +360,82 @@
         </div>
     </div>
 
+    <!-- Modal: Festival Bulk Input -->
+    <div id="festivalBulkModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-4xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div class="px-6 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-950/50">
+                <div>
+                    <h3 class="text-lg font-bold text-slate-100 flex items-center gap-2">
+                        <i class="fa-solid fa-tent text-purple-400"></i> Festival Bulkinvoer
+                    </h3>
+                    <p class="text-xs text-slate-400 mt-0.5">Voer één keer het festival in en voeg meteen al je bezochte artiesten toe.</p>
+                </div>
+                <button onclick="closeFestivalBulkModal()" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <form id="festivalBulkForm" onsubmit="handleFestivalBulkSubmit(event)" class="p-6 overflow-y-auto space-y-6 flex-1">
+                <!-- Main Festival Information -->
+                <div class="bg-slate-800/50 p-4 rounded-xl border border-slate-700/60 space-y-4">
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-purple-400 flex items-center gap-1.5">
+                        <i class="fa-solid fa-circle-info"></i> Algemene Festival Details
+                    </h4>
+                    
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-medium text-slate-300 mb-1">Festival Naam <span class="text-rose-400">*</span></label>
+                            <input type="text" id="bulkFestivalName" required placeholder="bijv. Rock Werchter, Lowlands" class="w-full px-3.5 py-2 bg-slate-800 border border-slate-700 rounded-xl text-slate-100 text-sm focus:outline-none focus:border-purple-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-300 mb-1">Standaard / Startdatum <span class="text-rose-400">*</span></label>
+                            <input type="date" id="bulkFestivalDate" onchange="updateBulkArtistDates()" required class="w-full px-3.5 py-2 bg-slate-800 border border-slate-700 rounded-xl text-slate-100 text-sm focus:outline-none focus:border-purple-500">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-xs font-medium text-slate-300 mb-1">Festivalterrein / Venue</label>
+                            <input type="text" id="bulkVenue" placeholder="bijv. Festivalpark" class="w-full px-3.5 py-2 bg-slate-800 border border-slate-700 rounded-xl text-slate-100 text-sm focus:outline-none focus:border-purple-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-300 mb-1">Stad</label>
+                            <input type="text" id="bulkCity" placeholder="bijv. Werchter" class="w-full px-3.5 py-2 bg-slate-800 border border-slate-700 rounded-xl text-slate-100 text-sm focus:outline-none focus:border-purple-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-300 mb-1">Land</label>
+                            <input type="text" id="bulkCountry" placeholder="bijv. België" class="w-full px-3.5 py-2 bg-slate-800 border border-slate-700 rounded-xl text-slate-100 text-sm focus:outline-none focus:border-purple-500">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Artists List -->
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between">
+                        <h4 class="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
+                            <i class="fa-solid fa-users text-indigo-400"></i> Geziene Artiesten
+                        </h4>
+                        <button type="button" onclick="addBulkArtistRow()" class="px-3 py-1.5 text-xs font-semibold bg-purple-600/30 hover:bg-purple-600/50 text-purple-200 border border-purple-500/30 rounded-lg transition-colors flex items-center gap-1">
+                            <i class="fa-solid fa-plus"></i> Artiest Toevoegen
+                        </button>
+                    </div>
+
+                    <div id="bulkArtistsContainer" class="space-y-3">
+                        <!-- Dynamic artist rows will be appended here -->
+                    </div>
+                </div>
+
+                <div class="pt-4 border-t border-slate-800 flex justify-end gap-3">
+                    <button type="button" onclick="closeFestivalBulkModal()" class="px-4 py-2 text-sm font-medium text-slate-300 hover:bg-slate-800 rounded-xl transition-colors">Annuleren</button>
+                    <button type="submit" class="px-5 py-2 text-sm font-semibold text-white bg-purple-600 hover:bg-purple-500 rounded-xl shadow-md shadow-purple-600/30 transition-all flex items-center gap-2">
+                        <i class="fa-solid fa-cloud-arrow-up"></i>
+                        <span>Alle Artiesten Opslaan</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Modal: Firebase Settings -->
     <div id="firebaseModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-6 shadow-2xl space-y-4">
@@ -404,6 +493,7 @@
         let db = null;
         let isFirebaseActive = false;
         let sortDesc = true;
+        let bulkRowCounter = 0;
 
         const sampleConcerts = [
             {
@@ -583,6 +673,29 @@
             applyFilters();
         };
 
+        // Helper: Check if date string is in future
+        function isFutureDate(dateStr) {
+            if (!dateStr) return false;
+            const inputDate = new Date(dateStr);
+            const today = new Date();
+            today.setHours(0,0,0,0);
+            return inputDate > today;
+        }
+
+        // Auto update status element based on input date
+        window.autoUpdateStatusFromDate = function(dateInputId, statusSelectId) {
+            const dateVal = document.getElementById(dateInputId).value;
+            const statusSelect = document.getElementById(statusSelectId);
+            if (!dateVal || !statusSelect) return;
+
+            if (isFutureDate(dateVal)) {
+                statusSelect.value = 'PLANNED';
+            } else {
+                statusSelect.value = 'ATTENDED';
+            }
+            toggleRatingVisibility();
+        };
+
         window.applyFilters = function() {
             const query = document.getElementById('searchInput').value.toLowerCase().trim();
             const status = document.getElementById('statusFilter').value;
@@ -629,7 +742,9 @@
             emptyState.classList.remove('flex');
 
             grid.innerHTML = items.map(item => {
-                const isAttended = item.status === 'ATTENDED';
+                const isUpcoming = isFutureDate(item.date);
+                const isAttended = item.status === 'ATTENDED' && !isUpcoming;
+                
                 const formattedDate = new Date(item.date).toLocaleDateString('nl-NL', {
                     day: 'numeric',
                     month: 'short',
@@ -637,7 +752,7 @@
                 });
 
                 let starsHtml = '';
-                if (isAttended && item.rating > 0) {
+                if (item.status === 'ATTENDED' && item.rating > 0) {
                     starsHtml = '<div class="flex text-amber-400 text-xs gap-0.5 mt-2">';
                     for (let i = 1; i <= 5; i++) {
                         starsHtml += `<i class="fa-star ${i <= item.rating ? 'fa-solid' : 'fa-regular text-slate-600'}"></i>`;
@@ -657,8 +772,8 @@
                                 ${isAttended ? 'Geweest' : 'Gepland'}
                             </span>
                             ${item.type === 'FESTIVAL' ? `
-                                <span class="text-xs px-2.5 py-1 rounded-full font-medium bg-purple-500/10 text-purple-300 border border-purple-500/20">
-                                    <i class="fa-solid fa-tent mr-1"></i> ${item.festivalName || 'Festival'}
+                                <span class="text-xs px-2.5 py-1 rounded-full font-medium bg-purple-500/10 text-purple-300 border border-purple-500/20 line-clamp-1">
+                                    <i class="fa-solid fa-tent mr-1"></i> ${escapeHtml(item.festivalName || 'Festival')}
                                 </span>
                             ` : ''}
                         </div>
@@ -739,7 +854,9 @@
             } else {
                 document.getElementById('modalTitle').innerText = "Nieuw Concert Toevoegen";
                 document.getElementById('concertId').value = '';
-                document.getElementById('formDate').valueAsDate = new Date();
+                const todayStr = new Date().toISOString().split('T')[0];
+                document.getElementById('formDate').value = todayStr;
+                autoUpdateStatusFromDate('formDate', 'formStatus');
             }
 
             toggleRatingVisibility();
@@ -783,20 +900,209 @@
             ratingText.innerText = labels[rating] || "Geen score";
         }
 
+        /* BULK FESTIVAL FUNCTIONS */
+        window.openFestivalBulkModal = function() {
+            const modal = document.getElementById('festivalBulkModal');
+            document.getElementById('festivalBulkForm').reset();
+            const container = document.getElementById('bulkArtistsContainer');
+            container.innerHTML = '';
+            bulkRowCounter = 0;
+
+            const todayStr = new Date().toISOString().split('T')[0];
+            document.getElementById('bulkFestivalDate').value = todayStr;
+
+            // Add 2 initial artist rows
+            addBulkArtistRow();
+            addBulkArtistRow();
+
+            modal.classList.remove('hidden');
+        };
+
+        window.closeFestivalBulkModal = function() {
+            document.getElementById('festivalBulkModal').classList.add('hidden');
+        };
+
+        window.addBulkArtistRow = function() {
+            bulkRowCounter++;
+            const rowId = `bulkArtistRow_${bulkRowCounter}`;
+            const festivalDate = document.getElementById('bulkFestivalDate').value || new Date().toISOString().split('T')[0];
+            const container = document.getElementById('bulkArtistsContainer');
+
+            const div = document.createElement('div');
+            div.id = rowId;
+            div.className = "p-3.5 bg-slate-800/80 border border-slate-700/80 rounded-xl space-y-3 relative group";
+            div.innerHTML = `
+                <div class="flex items-center justify-between gap-2 border-b border-slate-700/50 pb-2">
+                    <span class="text-xs font-semibold text-slate-400 flex items-center gap-1.5">
+                        <i class="fa-solid fa-microphone text-purple-400"></i> Artiest #${container.children.length + 1}
+                    </span>
+                    <button type="button" onclick="removeBulkArtistRow('${rowId}')" class="text-slate-500 hover:text-rose-400 text-xs px-2 py-1 rounded hover:bg-slate-700/50 transition-colors">
+                        <i class="fa-solid fa-trash-can mr-1"></i> Wis
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div class="sm:col-span-2">
+                        <label class="block text-[11px] text-slate-400 mb-1">Artiest / Band <span class="text-rose-400">*</span></label>
+                        <input type="text" data-field="artist" required placeholder="bijv. Queens of the Stone Age" class="w-full px-3 py-1.5 bg-slate-900 border border-slate-700 rounded-lg text-slate-100 text-xs focus:outline-none focus:border-purple-500">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] text-slate-400 mb-1">Specifieke Datum</label>
+                        <input type="date" data-field="date" value="${festivalDate}" required class="w-full px-3 py-1.5 bg-slate-900 border border-slate-700 rounded-lg text-slate-100 text-xs focus:outline-none focus:border-purple-500">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                        <label class="block text-[11px] text-slate-400 mb-1">Beoordeling (0-5)</label>
+                        <select data-field="rating" class="w-full px-3 py-1.5 bg-slate-900 border border-slate-700 rounded-lg text-slate-100 text-xs focus:outline-none focus:border-purple-500">
+                            <option value="0">Geen score</option>
+                            <option value="1">1 - Matig</option>
+                            <option value="2">2 - Voldoende</option>
+                            <option value="3">3 - Goed</option>
+                            <option value="4">4 - Geweldig</option>
+                            <option value="5">5 - Legendarisch!</option>
+                        </select>
+                    </div>
+                    <div class="sm:col-span-2">
+                        <label class="block text-[11px] text-slate-400 mb-1">Notities / Setlist Link (Optioneel)</label>
+                        <input type="text" data-field="notes" placeholder="bijv. Main stage, geweldige lichtshow" class="w-full px-3 py-1.5 bg-slate-900 border border-slate-700 rounded-lg text-slate-100 text-xs focus:outline-none focus:border-purple-500">
+                    </div>
+                </div>
+            `;
+            container.appendChild(div);
+        };
+
+        window.removeBulkArtistRow = function(rowId) {
+            const element = document.getElementById(rowId);
+            if (element) {
+                element.remove();
+                // Update artist counters labels
+                const rows = document.querySelectorAll('#bulkArtistsContainer > div');
+                rows.forEach((row, idx) => {
+                    const label = row.querySelector('span');
+                    if (label) {
+                        label.innerHTML = `<i class="fa-solid fa-microphone text-purple-400"></i> Artiest #${idx + 1}`;
+                    }
+                });
+            }
+        };
+
+        window.updateBulkArtistDates = function() {
+            const newDate = document.getElementById('bulkFestivalDate').value;
+            if (!newDate) return;
+            const dateInputs = document.querySelectorAll('#bulkArtistsContainer input[data-field="date"]');
+            dateInputs.forEach(input => {
+                input.value = newDate;
+            });
+        };
+
+        window.handleFestivalBulkSubmit = async function(e) {
+            e.preventDefault();
+
+            const festivalName = document.getElementById('bulkFestivalName').value.trim();
+            const mainDate = document.getElementById('bulkFestivalDate').value;
+            const venue = document.getElementById('bulkVenue').value.trim();
+            const city = document.getElementById('bulkCity').value.trim();
+            const country = document.getElementById('bulkCountry').value.trim();
+
+            const artistRows = document.querySelectorAll('#bulkArtistsContainer > div');
+            if (artistRows.length === 0) {
+                showToast("Voeg minimaal 1 artiest toe", "error");
+                return;
+            }
+
+            const newEntries = [];
+
+            artistRows.forEach(row => {
+                const artistInput = row.querySelector('[data-field="artist"]');
+                const dateInput = row.querySelector('[data-field="date"]');
+                const ratingSelect = row.querySelector('[data-field="rating"]');
+                const notesInput = row.querySelector('[data-field="notes"]');
+
+                const artist = artistInput ? artistInput.value.trim() : '';
+                const date = dateInput ? dateInput.value : mainDate;
+                const rating = ratingSelect ? parseInt(ratingSelect.value) : 0;
+                const notes = notesInput ? notesInput.value.trim() : '';
+
+                if (artist) {
+                    const status = isFutureDate(date) ? 'PLANNED' : 'ATTENDED';
+                    
+                    let setlistUrl = '';
+                    let cleanNotes = notes;
+                    if (notes.startsWith('http://') || notes.startsWith('https://')) {
+                        setlistUrl = notes;
+                        cleanNotes = '';
+                    }
+
+                    newEntries.push({
+                        artist: artist,
+                        date: date,
+                        status: status,
+                        type: 'FESTIVAL',
+                        festivalName: festivalName,
+                        venue: venue,
+                        city: city,
+                        country: country,
+                        rating: status === 'ATTENDED' ? rating : 0,
+                        setlist: setlistUrl,
+                        notes: cleanNotes,
+                        updatedAt: new Date().toISOString()
+                    });
+                }
+            });
+
+            if (newEntries.length === 0) {
+                showToast("Vul minimaal één geldige artiestennaam in", "error");
+                return;
+            }
+
+            if (isFirebaseActive && db) {
+                try {
+                    const appId = typeof __app_id !== 'undefined' ? __app_id : 'livenote-app';
+                    const colRef = collection(db, 'artifacts', appId, 'public', 'data', 'concerts');
+
+                    for (const item of newEntries) {
+                        await addDoc(colRef, item);
+                    }
+                    showToast(`${newEntries.length} artiesten succesvol toegevoegd aan Firebase!`);
+                } catch(err) {
+                    console.error("Error batch saving to Firebase:", err);
+                    showToast("Fout bij opslaan in Cloud", "error");
+                }
+            } else {
+                newEntries.forEach(item => {
+                    concerts.push({
+                        id: 'local-' + Date.now() + '-' + Math.random().toString(36).substr(2, 4),
+                        ...item
+                    });
+                });
+                saveLocalData();
+                populateYearFilter();
+                applyFilters();
+                showToast(`${newEntries.length} artiesten lokaal opgeslagen!`);
+            }
+
+            closeFestivalBulkModal();
+        };
+
         window.handleFormSubmit = async function(e) {
             e.preventDefault();
 
             const id = document.getElementById('concertId').value;
+            const dateVal = document.getElementById('formDate').value;
+            const statusVal = document.getElementById('formStatus').value;
+
             const concertData = {
                 artist: document.getElementById('formArtist').value.trim(),
-                date: document.getElementById('formDate').value,
-                status: document.getElementById('formStatus').value,
+                date: dateVal,
+                status: statusVal,
                 type: document.getElementById('formType').value,
                 festivalName: document.getElementById('formType').value === 'FESTIVAL' ? document.getElementById('formFestival').value.trim() : '',
                 venue: document.getElementById('formVenue').value.trim(),
                 city: document.getElementById('formCity').value.trim(),
                 country: document.getElementById('formCountry').value.trim(),
-                rating: document.getElementById('formStatus').value === 'ATTENDED' ? parseInt(document.getElementById('formRating').value || 0) : 0,
+                rating: statusVal === 'ATTENDED' ? parseInt(document.getElementById('formRating').value || 0) : 0,
                 setlist: document.getElementById('formSetlist').value.trim(),
                 notes: document.getElementById('formNotes').value.trim(),
                 updatedAt: new Date().toISOString()
@@ -991,7 +1297,8 @@
             // Chart 3
             const venueCounts = {};
             concerts.forEach(c => {
-                if (c.venue) venueCounts[c.venue] = (venueCounts[c.venue] || 0) + 1;
+                const name = c.type === 'FESTIVAL' ? (c.festivalName || c.venue) : c.venue;
+                if (name) venueCounts[name] = (venueCounts[name] || 0) + 1;
             });
             const sortedVenues = Object.entries(venueCounts).sort((a,b) => b[1] - a[1]).slice(0, 5);
 
