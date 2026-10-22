@@ -1,11 +1,13 @@
 <!DOCTYPE html>
-<html lang="nl" class="dark">
+<html lang="nl" class="h-full bg-slate-950 text-slate-100">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LiveNote - Concert & Festival Logbook</title>
-    <!-- Tailwind CSS -->
+    <title>Concertjes • Jordy's lijstje</title>
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
     <script>
         tailwind.config = {
             darkMode: 'class',
@@ -13,1067 +15,584 @@
                 extend: {
                     colors: {
                         brand: {
-                            50: '#f0f5ff',
-                            100: '#e0ebff',
-                            500: '#6366f1',
-                            600: '#4f46e5',
-                            700: '#4338ca',
-                            900: '#312e81',
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                            900: '#14532d',
                         }
                     }
                 }
             }
         }
     </script>
-    <!-- FontAwesome for Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Chart.js for Statistics -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Google Fonts Inter -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
         body {
-            font-family: 'Inter', sans-serif;
+            font-family: 'Plus Jakarta Sans', sans-serif;
         }
+        /* Custom scrollbar for better aesthetics */
         ::-webkit-scrollbar {
             width: 8px;
             height: 8px;
         }
         ::-webkit-scrollbar-track {
-            background: rgba(15, 23, 42, 0.6);
+            background: #0f172a;
         }
         ::-webkit-scrollbar-thumb {
-            background: rgba(99, 102, 241, 0.4);
+            background: #334155;
             border-radius: 4px;
         }
         ::-webkit-scrollbar-thumb:hover {
-            background: rgba(99, 102, 241, 0.7);
+            background: #475569;
         }
     </style>
 </head>
-<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col transition-colors duration-200">
+<body class="min-h-full flex flex-col bg-slate-950 text-slate-100 antialiased selection:bg-brand-500 selection:text-black">
 
-    <!-- Header Navigation -->
-    <header class="border-b border-slate-800 bg-slate-950/80 backdrop-blur-md sticky top-0 z-30">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+    <!-- Top Navigation Header -->
+    <header class="sticky top-0 z-30 border-b border-slate-800/80 bg-slate-950/80 backdrop-blur-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-4">
+            <!-- Branding -->
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center text-white shadow-lg shadow-indigo-500/30">
-                    <i class="fa-solid fa-guitar text-xl"></i>
+                <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-brand-600 to-emerald-400 flex items-center justify-center shadow-lg shadow-brand-500/20 text-slate-950">
+                    <i data-lucide="music" class="w-6 h-6 stroke-[2.5]"></i>
                 </div>
                 <div>
-                    <h1 class="font-bold text-lg leading-tight tracking-wide bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">LiveNote</h1>
-                    <p class="text-xs text-slate-400">Je persoonlijke concertarchief</p>
+                    <h1 class="text-2xl font-black tracking-tight text-white flex items-center gap-2">
+                        Concertjes
+                        <span class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-brand-500/10 text-brand-400 border border-brand-500/20">v2.0</span>
+                    </h1>
+                    <p class="text-xs text-slate-400 font-medium">Jordy's lijstje</p>
                 </div>
             </div>
 
-            <div class="flex items-center gap-2 sm:gap-4">
-                <!-- Data Source Indicator & Config -->
-                <button id="configFirebaseBtn" onclick="openFirebaseModal()" class="flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-lg border transition-all duration-200 border-slate-700 bg-slate-800/80 hover:bg-slate-700 text-slate-300">
-                    <span id="syncStatusDot" class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
-                    <span id="syncStatusText" class="hidden sm:inline">Demo / Lokaal</span>
-                    <i class="fa-solid fa-gear text-slate-400 ml-1"></i>
-                </button>
-
-                <!-- New Concert Button -->
-                <button onclick="openConcertModal()" class="flex items-center gap-2 px-4 py-2 text-xs sm:text-sm font-semibold rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white shadow-md shadow-indigo-600/30 transition-all active:scale-95">
-                    <i class="fa-solid fa-plus"></i>
-                    <span>Nieuw Concert</span>
-                </button>
-            </div>
+            <!-- Quick Action Button -->
+            <button onclick="openAddModal()" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-brand-500 hover:bg-brand-600 text-slate-950 font-bold text-sm shadow-md shadow-brand-500/20 transition duration-200 active:scale-95">
+                <i data-lucide="plus" class="w-4 h-4 stroke-[3]"></i>
+                <span>Nieuw Concert</span>
+            </button>
         </div>
     </header>
 
-    <!-- Permission Error Alert Banner -->
-    <div id="permissionBanner" class="hidden max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
-        <div class="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-amber-200 text-xs sm:text-sm">
-            <div class="flex items-center gap-3">
-                <i class="fa-solid fa-triangle-exclamation text-amber-400 text-xl"></i>
-                <div>
-                    <p class="font-semibold">Firebase Permissiefout of Geen Verbinding</p>
-                    <p class="text-amber-300/80 text-xs">Controleer je Firebase Firestore Security Rules of API sleutels. De app werkt momenteel in lokale opslag.</p>
-                </div>
-            </div>
-            <button onclick="openFirebaseModal()" class="px-3 py-1.5 bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 border border-amber-500/40 rounded-lg whitespace-nowrap transition-colors">
-                Bekijk Instellingen
-            </button>
-        </div>
-    </div>
-
     <!-- Main Container -->
-    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col gap-8">
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
 
-        <!-- Navigation Tabs -->
-        <div class="flex items-center justify-between border-b border-slate-800 pb-2">
-            <nav class="flex gap-2 sm:gap-6" aria-label="Tabs">
-                <button id="tabBtnList" onclick="switchTab('list')" class="flex items-center gap-2 pb-2 px-1 border-b-2 font-medium text-sm border-indigo-500 text-indigo-400 transition-colors">
-                    <i class="fa-solid fa-list-ul"></i>
-                    Concerten & Festivals
-                    <span id="totalBadge" class="ml-1 px-2 py-0.5 text-xs rounded-full bg-indigo-950 text-indigo-300 border border-indigo-800/50">0</span>
-                </button>
-                <button id="tabBtnStats" onclick="switchTab('stats')" class="flex items-center gap-2 pb-2 px-1 border-b-2 border-transparent text-slate-400 hover:text-slate-200 font-medium text-sm transition-colors">
-                    <i class="fa-solid fa-chart-pie"></i>
-                    Statistieken
-                </button>
-            </nav>
-        </div>
-
-        <!-- TAB 1: LIST VIEW -->
-        <div id="tabList" class="flex flex-col gap-6">
-
-            <!-- Filter Toolbar -->
-            <div class="bg-slate-800/60 rounded-2xl p-4 border border-slate-800 flex flex-col md:flex-row gap-4 items-stretch md:items-center justify-between shadow-sm backdrop-blur-sm">
-                <!-- Search Box -->
-                <div class="relative flex-1">
-                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
-                    <input type="text" id="searchInput" oninput="applyFilters()" placeholder="Zoek op artiest, locatie, festival of stad..." class="w-full pl-10 pr-4 py-2 bg-slate-900/80 border border-slate-700/80 rounded-xl text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500">
+        <!-- Stats Overview Grid -->
+        <section class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="p-5 rounded-2xl bg-slate-900/60 border border-slate-800/80 flex items-center gap-4">
+                <div class="w-12 h-12 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center shrink-0">
+                    <i data-lucide="ticket" class="w-6 h-6"></i>
                 </div>
+                <div>
+                    <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Totaal Concerten</p>
+                    <h3 id="stat-total" class="text-2xl font-bold text-white mt-0.5">0</h3>
+                </div>
+            </div>
 
-                <!-- Filters -->
-                <div class="flex flex-wrap sm:flex-nowrap items-center gap-3">
-                    <select id="statusFilter" onchange="applyFilters()" class="bg-slate-900/80 border border-slate-700/80 rounded-xl text-xs sm:text-sm text-slate-200 px-3 py-2 focus:outline-none focus:border-indigo-500">
-                        <option value="ALL">Alle Status</option>
-                        <option value="ATTENDED">Geweest (Historie)</option>
-                        <option value="PLANNED">Gepland (Toekomst)</option>
+            <div class="p-5 rounded-2xl bg-slate-900/60 border border-slate-800/80 flex items-center gap-4">
+                <div class="w-12 h-12 rounded-xl bg-purple-500/10 text-purple-400 flex items-center justify-center shrink-0">
+                    <i data-lucide="mic" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Top Artiest</p>
+                    <h3 id="stat-top-artist" class="text-2xl font-bold text-white mt-0.5 truncate max-w-[130px] sm:max-w-[160px]">-</h3>
+                </div>
+            </div>
+
+            <div class="p-5 rounded-2xl bg-slate-900/60 border border-slate-800/80 flex items-center gap-4">
+                <div class="w-12 h-12 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center shrink-0">
+                    <i data-lucide="map-pin" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Favoriete Zaal</p>
+                    <h3 id="stat-top-venue" class="text-2xl font-bold text-white mt-0.5 truncate max-w-[130px] sm:max-w-[160px]">-</h3>
+                </div>
+            </div>
+
+            <div class="p-5 rounded-2xl bg-slate-900/60 border border-slate-800/80 flex items-center gap-4">
+                <div class="w-12 h-12 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center shrink-0">
+                    <i data-lucide="camera" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Met Foto's</p>
+                    <h3 id="stat-with-photos" class="text-2xl font-bold text-white mt-0.5">0</h3>
+                </div>
+            </div>
+        </section>
+
+        <!-- Filters & Search Bar -->
+        <section class="flex flex-col md:flex-row gap-4 items-stretch md:items-center justify-between">
+            <!-- Search input -->
+            <div class="relative flex-1">
+                <i data-lucide="search" class="w-5 h-5 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                <input type="text" id="search-input" oninput="renderConcerts()" placeholder="Zoek op artiest, locatie, stad..." class="w-full pl-11 pr-4 py-2.5 rounded-xl bg-slate-900/80 border border-slate-800 text-sm placeholder:text-slate-500 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition">
+            </div>
+
+            <!-- Sorting & Filter Options -->
+            <div class="flex items-center gap-3">
+                <div class="relative flex-1 md:w-48">
+                    <select id="sort-select" onchange="renderConcerts()" class="w-full appearance-none pl-3.5 pr-9 py-2.5 rounded-xl bg-slate-900/80 border border-slate-800 text-sm text-slate-300 focus:outline-none focus:border-brand-500 transition">
+                        <option value="date-desc">Nieuwste eerst</option>
+                        <option value="date-asc">Oudste eerst</option>
+                        <option value="rating-desc">Hoogste score</option>
+                        <option value="artist-asc">Artiest (A-Z)</option>
                     </select>
-
-                    <select id="typeFilter" onchange="applyFilters()" class="bg-slate-900/80 border border-slate-700/80 rounded-xl text-xs sm:text-sm text-slate-200 px-3 py-2 focus:outline-none focus:border-indigo-500">
-                        <option value="ALL">Alle Types</option>
-                        <option value="CONCERT">Los Concert</option>
-                        <option value="FESTIVAL">Festival</option>
-                    </select>
-
-                    <select id="yearFilter" onchange="applyFilters()" class="bg-slate-900/80 border border-slate-700/80 rounded-xl text-xs sm:text-sm text-slate-200 px-3 py-2 focus:outline-none focus:border-indigo-500">
-                        <option value="ALL">Alle Jaren</option>
-                    </select>
-
-                    <button onclick="toggleSortOrder()" id="sortBtn" class="flex items-center gap-1.5 px-3 py-2 bg-slate-900/80 border border-slate-700/80 rounded-xl text-xs sm:text-sm text-slate-200 hover:bg-slate-800 transition-colors" title="Sorteervolgorde wijzigen">
-                        <i class="fa-solid fa-arrow-down-wide-short text-indigo-400" id="sortIcon"></i>
-                        <span id="sortText" class="hidden sm:inline">Nieuwst Eerst</span>
-                    </button>
+                    <i data-lucide="chevron-down" class="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
                 </div>
-            </div>
 
-            <!-- Concert Grid -->
-            <div id="concertsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
-
-            <!-- Empty State -->
-            <div id="emptyState" class="hidden flex-col items-center justify-center py-16 px-4 text-center rounded-2xl bg-slate-800/30 border border-dashed border-slate-800">
-                <div class="w-16 h-16 rounded-full bg-slate-800 flex items-center justify-center text-slate-500 mb-4">
-                    <i class="fa-solid fa-compact-disc text-3xl"></i>
-                </div>
-                <h3 class="text-lg font-semibold text-slate-300 mb-1">Geen concerten gevonden</h3>
-                <p class="text-slate-500 text-sm max-w-md mb-6">Voeg je eerste concert toe of pas je zoekfilters aan om de resultaten te zien.</p>
-                <button onclick="openConcertModal()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-medium rounded-xl text-sm transition-colors">
-                    <i class="fa-solid fa-plus mr-1"></i> Voeg Concert Toe
+                <button id="photo-filter-btn" onclick="togglePhotoFilter()" class="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-slate-900/80 border border-slate-800 text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition">
+                    <i data-lucide="image" class="w-4 h-4 text-slate-400"></i>
+                    <span class="hidden sm:inline">Met foto</span>
                 </button>
             </div>
-        </div>
+        </section>
 
-        <!-- TAB 2: STATISTICS DASHBOARD -->
-        <div id="tabStats" class="hidden flex-col gap-6">
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div class="bg-slate-800/60 p-5 rounded-2xl border border-slate-800 flex flex-col justify-between">
-                    <div class="flex items-center justify-between text-slate-400 mb-2">
-                        <span class="text-xs font-semibold uppercase tracking-wider">Totaal Gezien</span>
-                        <i class="fa-solid fa-ticket text-indigo-400"></i>
-                    </div>
-                    <div id="statTotalAttended" class="text-3xl font-bold text-white">0</div>
-                    <p class="text-xs text-slate-500 mt-1">Afgelopen optredens</p>
-                </div>
+        <!-- Concert Grid / List -->
+        <section id="concerts-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Dynamic Content -->
+        </section>
 
-                <div class="bg-slate-800/60 p-5 rounded-2xl border border-slate-800 flex flex-col justify-between">
-                    <div class="flex items-center justify-between text-slate-400 mb-2">
-                        <span class="text-xs font-semibold uppercase tracking-wider">Gepland</span>
-                        <i class="fa-solid fa-calendar-check text-emerald-400"></i>
-                    </div>
-                    <div id="statTotalPlanned" class="text-3xl font-bold text-white">0</div>
-                    <p class="text-xs text-slate-500 mt-1">In de toekomst</p>
-                </div>
-
-                <div class="bg-slate-800/60 p-5 rounded-2xl border border-slate-800 flex flex-col justify-between">
-                    <div class="flex items-center justify-between text-slate-400 mb-2">
-                        <span class="text-xs font-semibold uppercase tracking-wider">Unieke Artiesten</span>
-                        <i class="fa-solid fa-user-ninja text-amber-400"></i>
-                    </div>
-                    <div id="statUniqueArtists" class="text-3xl font-bold text-white">0</div>
-                    <p class="text-xs text-slate-500 mt-1">Verschillende bands/acts</p>
-                </div>
-
-                <div class="bg-slate-800/60 p-5 rounded-2xl border border-slate-800 flex flex-col justify-between">
-                    <div class="flex items-center justify-between text-slate-400 mb-2">
-                        <span class="text-xs font-semibold uppercase tracking-wider">Festivals</span>
-                        <i class="fa-solid fa-tent text-purple-400"></i>
-                    </div>
-                    <div id="statTotalFestivals" class="text-3xl font-bold text-white">0</div>
-                    <p class="text-xs text-slate-500 mt-1">Festival edities</p>
-                </div>
+        <!-- Empty State (hidden by default) -->
+        <div id="empty-state" class="hidden text-center py-16 px-4 rounded-3xl bg-slate-900/40 border border-dashed border-slate-800">
+            <div class="w-16 h-16 rounded-2xl bg-slate-800/60 text-slate-400 flex items-center justify-center mx-auto mb-4">
+                <i data-lucide="disc" class="w-8 h-8"></i>
             </div>
-
-            <!-- Charts -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div class="bg-slate-800/60 rounded-2xl p-5 border border-slate-800 flex flex-col">
-                    <h3 class="text-base font-semibold text-slate-200 mb-4 flex items-center gap-2">
-                        <i class="fa-solid fa-chart-column text-indigo-400"></i> Concerten per Jaar
-                    </h3>
-                    <div class="flex-1 min-h-[260px] relative">
-                        <canvas id="chartYears"></canvas>
-                    </div>
-                </div>
-
-                <div class="bg-slate-800/60 rounded-2xl p-5 border border-slate-800 flex flex-col">
-                    <h3 class="text-base font-semibold text-slate-200 mb-4 flex items-center gap-2">
-                        <i class="fa-solid fa-crown text-amber-400"></i> Meest Geziene Artiesten
-                    </h3>
-                    <div class="flex-1 min-h-[260px] relative">
-                        <canvas id="chartArtists"></canvas>
-                    </div>
-                </div>
-
-                <div class="bg-slate-800/60 rounded-2xl p-5 border border-slate-800 flex flex-col">
-                    <h3 class="text-base font-semibold text-slate-200 mb-4 flex items-center gap-2">
-                        <i class="fa-solid fa-location-dot text-rose-400"></i> Meest Bezochte Locaties
-                    </h3>
-                    <div class="flex-1 min-h-[260px] relative">
-                        <canvas id="chartVenues"></canvas>
-                    </div>
-                </div>
-
-                <div class="bg-slate-800/60 rounded-2xl p-5 border border-slate-800 flex flex-col">
-                    <h3 class="text-base font-semibold text-slate-200 mb-4 flex items-center gap-2">
-                        <i class="fa-solid fa-chart-pie text-emerald-400"></i> Type Verdeling
-                    </h3>
-                    <div class="flex-1 min-h-[260px] relative flex items-center justify-center">
-                        <canvas id="chartType"></canvas>
-                    </div>
-                </div>
-            </div>
+            <h3 class="text-lg font-bold text-white mb-1">Geen concerten gevonden</h3>
+            <p class="text-slate-400 text-sm max-w-sm mx-auto mb-6">Voeg je eerste herinnering toe of pas je zoekopdracht aan.</p>
+            <button onclick="openAddModal()" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-brand-500 text-slate-950 font-bold text-sm hover:bg-brand-600 transition">
+                <i data-lucide="plus" class="w-4 h-4"></i>
+                <span>Voeg Concert Toe</span>
+            </button>
         </div>
 
     </main>
 
-    <!-- Modal: Add/Edit Concert -->
-    <div id="concertModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-            <div class="px-6 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-950/50">
-                <h3 id="modalTitle" class="text-lg font-bold text-slate-100 flex items-center gap-2">
-                    <i class="fa-solid fa-ticket text-indigo-400"></i> Nieuw Concert Toevoegen
-                </h3>
-                <button onclick="closeConcertModal()" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors">
-                    <i class="fa-solid fa-xmark text-lg"></i>
+    <!-- Modal for Adding / Editing Concert -->
+    <div id="concert-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm hidden opacity-0 transition-opacity duration-200">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-xl max-h-[90vh] overflow-y-auto shadow-2xl p-6 sm:p-8 space-y-6 relative transform scale-95 transition-transform duration-200" id="modal-container">
+            
+            <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+                <h2 id="modal-title" class="text-xl font-bold text-white">Nieuw Concert Toevoegen</h2>
+                <button onclick="closeModal()" class="p-2 text-slate-400 hover:text-white rounded-xl hover:bg-slate-800 transition">
+                    <i data-lucide="x" class="w-5 h-5"></i>
                 </button>
             </div>
 
-            <form id="concertForm" onsubmit="handleFormSubmit(event)" class="p-6 overflow-y-auto space-y-4 flex-1">
-                <input type="hidden" id="concertId">
+            <form id="concert-form" onsubmit="handleFormSubmit(event)" class="space-y-4">
+                <input type="hidden" id="concert-id">
 
+                <!-- Artist -->
                 <div>
-                    <label class="block text-xs font-medium text-slate-300 mb-1">Artiest / Band <span class="text-rose-400">*</span></label>
-                    <input type="text" id="formArtist" required placeholder="bijv. Arctic Monkeys" class="w-full px-3.5 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-slate-100 text-sm focus:outline-none focus:border-indigo-500">
+                    <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">Artiest / Band *</label>
+                    <input type="text" id="form-artist" required placeholder="bijv. Arctic Monkeys" class="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white focus:outline-none focus:border-brand-500">
                 </div>
 
+                <!-- Venue & City Grid -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-xs font-medium text-slate-300 mb-1">Datum <span class="text-rose-400">*</span></label>
-                        <input type="date" id="formDate" required class="w-full px-3.5 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-slate-100 text-sm focus:outline-none focus:border-indigo-500">
+                        <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">Zaal / Festival *</label>
+                        <input type="text" id="form-venue" required placeholder="bijv. Werchter / AB" class="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white focus:outline-none focus:border-brand-500">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-slate-300 mb-1">Status</label>
-                        <select id="formStatus" onchange="toggleRatingVisibility()" class="w-full px-3.5 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-slate-100 text-sm focus:outline-none focus:border-indigo-500">
-                            <option value="ATTENDED">Geweest (Afgelopen)</option>
-                            <option value="PLANNED">Gepland (Toekomst)</option>
+                        <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">Stad / Land</label>
+                        <input type="text" id="form-location" placeholder="bijv. Brussel, België" class="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white focus:outline-none focus:border-brand-500">
+                    </div>
+                </div>
+
+                <!-- Date & Rating -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">Datum *</label>
+                        <input type="date" id="form-date" required class="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white focus:outline-none focus:border-brand-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">Beoordeling (1-5)</label>
+                        <select id="form-rating" class="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white focus:outline-none focus:border-brand-500">
+                            <option value="5">⭐⭐⭐⭐⭐ (5/5)</option>
+                            <option value="4">⭐⭐⭐⭐ (4/5)</option>
+                            <option value="3">⭐⭐⭐ (3/5)</option>
+                            <option value="2">⭐⭐ (2/5)</option>
+                            <option value="1">⭐ (1/5)</option>
                         </select>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-medium text-slate-300 mb-1">Type Event</label>
-                        <select id="formType" onchange="toggleFestivalVisibility()" class="w-full px-3.5 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-slate-100 text-sm focus:outline-none focus:border-indigo-500">
-                            <option value="CONCERT">Los Concert</option>
-                            <option value="FESTIVAL">Festival</option>
-                        </select>
-                    </div>
-                    <div id="festivalNameContainer" class="hidden">
-                        <label class="block text-xs font-medium text-slate-300 mb-1">Festival Naam</label>
-                        <input type="text" id="formFestival" placeholder="bijv. Rock Werchter, Pinkpop" class="w-full px-3.5 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-slate-100 text-sm focus:outline-none focus:border-indigo-500">
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div>
-                        <label class="block text-xs font-medium text-slate-300 mb-1">Locatie / Venue</label>
-                        <input type="text" id="formVenue" placeholder="bijv. Ziggo Dome, AB" class="w-full px-3.5 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-slate-100 text-sm focus:outline-none focus:border-indigo-500">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-medium text-slate-300 mb-1">Stad</label>
-                        <input type="text" id="formCity" placeholder="bijv. Amsterdam" class="w-full px-3.5 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-slate-100 text-sm focus:outline-none focus:border-indigo-500">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-medium text-slate-300 mb-1">Land</label>
-                        <input type="text" id="formCountry" placeholder="bijv. Nederland" class="w-full px-3.5 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-slate-100 text-sm focus:outline-none focus:border-indigo-500">
-                    </div>
-                </div>
-
-                <div id="ratingContainer">
-                    <label class="block text-xs font-medium text-slate-300 mb-1">Beoordeling</label>
-                    <div class="flex items-center gap-2 bg-slate-800 p-2.5 rounded-xl border border-slate-700">
-                        <div id="starRating" class="flex gap-1 text-2xl text-slate-600 cursor-pointer">
-                            <i class="fa-star fa-solid" onclick="setRating(1)"></i>
-                            <i class="fa-star fa-solid" onclick="setRating(2)"></i>
-                            <i class="fa-star fa-solid" onclick="setRating(3)"></i>
-                            <i class="fa-star fa-solid" onclick="setRating(4)"></i>
-                            <i class="fa-star fa-solid" onclick="setRating(5)"></i>
+                <!-- Photo Upload Field -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">Concertfoto's Uploaden</label>
+                    <div class="relative border-2 border-dashed border-slate-800 hover:border-brand-500/50 rounded-2xl p-4 text-center transition bg-slate-950/50">
+                        <input type="file" id="form-photos" accept="image/*" multiple onchange="handlePhotoSelect(event)" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                        <div class="flex flex-col items-center justify-center space-y-1">
+                            <i data-lucide="upload-cloud" class="w-8 h-8 text-slate-400"></i>
+                            <p class="text-xs font-medium text-slate-300">Klik of sleep afbeeldingen hierheen</p>
+                            <p class="text-[10px] text-slate-500">PNG, JPG, WEBP toegestaan (Max 3MB per foto)</p>
                         </div>
-                        <span id="ratingText" class="text-xs text-slate-400 ml-2">Geen score</span>
-                        <input type="hidden" id="formRating" value="0">
                     </div>
+                    <!-- Photo Preview Container in Form -->
+                    <div id="form-photo-previews" class="flex flex-wrap gap-2 mt-3"></div>
                 </div>
 
+                <!-- Notes / Memories -->
                 <div>
-                    <label class="block text-xs font-medium text-slate-300 mb-1">Setlist URL / Link (Optioneel)</label>
-                    <input type="url" id="formSetlist" placeholder="https://www.setlist.fm/..." class="w-full px-3.5 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-slate-100 text-sm focus:outline-none focus:border-indigo-500">
+                    <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">Notities / Setlist / Herinneringen</label>
+                    <textarea id="form-notes" rows="3" placeholder="Wat was de beste song? Wie ging er mee?..." class="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white focus:outline-none focus:border-brand-500"></textarea>
                 </div>
 
-                <div>
-                    <label class="block text-xs font-medium text-slate-300 mb-1">Notities / Herinneringen</label>
-                    <textarea id="formNotes" rows="3" placeholder="Wie ging er mee? Sfeer, nummers..." class="w-full px-3.5 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-slate-100 text-sm focus:outline-none focus:border-indigo-500 resize-none"></textarea>
-                </div>
-
-                <div class="pt-4 border-t border-slate-800 flex justify-end gap-3">
-                    <button type="button" onclick="closeConcertModal()" class="px-4 py-2 text-sm font-medium text-slate-300 hover:bg-slate-800 rounded-xl transition-colors">Annuleren</button>
-                    <button type="submit" class="px-5 py-2 text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-500 rounded-xl shadow-md shadow-indigo-600/30 transition-all">Opslaan</button>
+                <!-- Action Buttons -->
+                <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-800">
+                    <button type="button" onclick="closeModal()" class="px-5 py-2.5 rounded-xl border border-slate-800 text-slate-300 hover:bg-slate-800 font-medium text-sm transition">Annuleren</button>
+                    <button type="submit" class="px-5 py-2.5 rounded-xl bg-brand-500 hover:bg-brand-600 text-slate-950 font-bold text-sm transition shadow-lg shadow-brand-500/20">Opslaan</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Modal: Firebase Settings -->
-    <div id="firebaseModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-6 shadow-2xl space-y-4">
-            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-                <h3 class="text-lg font-bold text-slate-100 flex items-center gap-2">
-                    <i class="fa-solid fa-cloud text-indigo-400"></i> Sync Instellingen
-                </h3>
-                <button onclick="closeFirebaseModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-
-            <p class="text-xs text-slate-400">
-                Voer je Firebase Web App configuratie in voor realtime synchronisatie over al je apparaten.
-            </p>
-
-            <div class="space-y-3">
-                <div>
-                    <label class="block text-xs text-slate-300 mb-1">API Key</label>
-                    <input type="text" id="fbApiKey" class="w-full px-3 py-1.5 bg-slate-800 border border-slate-700 rounded-lg text-xs font-mono text-slate-200">
-                </div>
-                <div>
-                    <label class="block text-xs text-slate-300 mb-1">Auth Domain</label>
-                    <input type="text" id="fbAuthDomain" class="w-full px-3 py-1.5 bg-slate-800 border border-slate-700 rounded-lg text-xs font-mono text-slate-200">
-                </div>
-                <div>
-                    <label class="block text-xs text-slate-300 mb-1">Project ID</label>
-                    <input type="text" id="fbProjectId" class="w-full px-3 py-1.5 bg-slate-800 border border-slate-700 rounded-lg text-xs font-mono text-slate-200">
-                </div>
-                <div>
-                    <label class="block text-xs text-slate-300 mb-1">App ID</label>
-                    <input type="text" id="fbAppId" class="w-full px-3 py-1.5 bg-slate-800 border border-slate-700 rounded-lg text-xs font-mono text-slate-200">
-                </div>
-            </div>
-
-            <div class="pt-3 border-t border-slate-800 flex justify-between items-center">
-                <button type="button" onclick="clearFirebaseSettings()" class="text-xs text-rose-400 hover:underline">Reset naar Lokaal</button>
-                <div class="flex gap-2">
-                    <button type="button" onclick="closeFirebaseModal()" class="px-3 py-1.5 text-xs text-slate-300 hover:bg-slate-800 rounded-lg">Annuleren</button>
-                    <button type="button" onclick="saveFirebaseSettings()" class="px-4 py-1.5 text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg">Opslaan & Verbinden</button>
-                </div>
-            </div>
+    <!-- Modal for Photo Preview Viewer -->
+    <div id="photo-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-md hidden opacity-0 transition-opacity duration-200" onclick="closePhotoModal()">
+        <div class="relative max-w-4xl max-h-[90vh] flex flex-col items-center" onclick="event.stopPropagation()">
+            <button onclick="closePhotoModal()" class="absolute -top-12 right-0 text-slate-300 hover:text-white p-2">
+                <i data-lucide="x" class="w-8 h-8"></i>
+            </button>
+            <img id="modal-photo-img" src="" alt="Concert foto" class="max-h-[80vh] max-w-full rounded-2xl object-contain shadow-2xl">
+            <p id="modal-photo-caption" class="text-slate-400 text-sm mt-3 text-center"></p>
         </div>
     </div>
 
-    <!-- Toast Notification -->
-    <div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2"></div>
-
-    <!-- MAIN JAVASCRIPT APP LOGIC -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, onSnapshot, addDoc, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-        let concerts = [];
-        let firebaseApp = null;
-        let db = null;
-        let isFirebaseActive = false;
-        let sortDesc = true;
-
-        const sampleConcerts = [
+    <!-- App Logic Script -->
+    <script>
+        // Default Mock Data if Storage is Empty
+        const initialConcerts = [
             {
-                id: "sample-1",
-                artist: "Arctic Monkeys",
-                date: "2023-05-05",
-                venue: "Ziggo Dome",
-                city: "Amsterdam",
-                country: "Nederland",
-                type: "CONCERT",
-                festivalName: "",
-                status: "ATTENDED",
+                id: '1',
+                artist: 'Arctic Monkeys',
+                venue: 'Rock Werchter',
+                location: 'Werchter, België',
+                date: '2023-07-02',
                 rating: 5,
-                notes: "Fantastische show! Onberispelijke geluidskwaliteit.",
-                setlist: "https://www.setlist.fm"
+                notes: 'Geweldige headliner show op de Main Stage. "505" was het absolute hoogtepunt!',
+                photos: []
             },
             {
-                id: "sample-2",
-                artist: "Foo Fighters",
-                date: "2024-06-25",
-                venue: "Rock Werchter Weide",
-                city: "Werchter",
-                country: "België",
-                type: "FESTIVAL",
-                festivalName: "Rock Werchter",
-                status: "ATTENDED",
-                rating: 4,
-                notes: "2.5 uur knallen!",
-                setlist: ""
+                id: '2',
+                artist: 'Fred again..',
+                venue: 'Ancienne Belgique',
+                location: 'Brussel, België',
+                date: '2022-11-25',
+                rating: 5,
+                notes: 'Intieme sfeer, onwaarschijnlijke energie van het publiek.',
+                photos: []
             }
         ];
 
-        window.initApp = async function() {
-            const storedConfig = localStorage.getItem('livenote_fb_config');
-            let configToUse = null;
+        let concerts = JSON.parse(localStorage.getItem('jordy_concerts_data')) || initialConcerts;
+        let currentTempPhotos = [];
+        let photoFilterActive = false;
 
-            if (storedConfig) {
-                try { configToUse = JSON.parse(storedConfig); } catch(e) {}
-            } else if (typeof __firebase_config !== 'undefined' && __firebase_config) {
-                try { configToUse = JSON.parse(__firebase_config); } catch(e) {}
-            }
+        // Initialize App
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            renderConcerts();
+            updateStats();
+        });
 
-            if (configToUse && configToUse.apiKey && configToUse.projectId) {
-                try {
-                    firebaseApp = initializeApp(configToUse);
-                    db = getFirestore(firebaseApp);
-                    const auth = getAuth(firebaseApp);
-                    
-                    try {
-                        await signInAnonymously(auth);
-                    } catch (authErr) {
-                        console.warn("Anonieme auth overgeslagen of mislukt:", authErr);
-                    }
-                    
-                    isFirebaseActive = true;
-                    updateSyncUI(true);
-
-                    const appId = typeof __app_id !== 'undefined' ? __app_id : 'livenote-app';
-                    const colRef = collection(db, 'artifacts', appId, 'public', 'data', 'concerts');
-
-                    onSnapshot(colRef, (snapshot) => {
-                        concerts = snapshot.docs.map(doc => ({
-                            id: doc.id,
-                            ...doc.data()
-                        }));
-                        hidePermissionBanner();
-                        populateYearFilter();
-                        applyFilters();
-                        if (currentTab === 'stats') renderCharts();
-                    }, (error) => {
-                        console.warn("Firestore listener error:", error);
-                        showPermissionBanner();
-                        fallbackToLocal();
-                    });
-
-                } catch (err) {
-                    console.warn("Firebase init failed:", err);
-                    fallbackToLocal();
-                }
-            } else {
-                fallbackToLocal();
-            }
-        };
-
-        function showPermissionBanner() {
-            const banner = document.getElementById('permissionBanner');
-            if (banner) banner.classList.remove('hidden');
+        // Save State
+        function saveData() {
+            localStorage.setItem('jordy_concerts_data', JSON.stringify(concerts));
+            updateStats();
         }
 
-        function hidePermissionBanner() {
-            const banner = document.getElementById('permissionBanner');
-            if (banner) banner.classList.add('hidden');
-        }
-
-        function fallbackToLocal() {
-            isFirebaseActive = false;
-            updateSyncUI(false);
-            const localData = localStorage.getItem('livenote_local_concerts');
-            if (localData) {
-                try { concerts = JSON.parse(localData); } catch(e) { concerts = [...sampleConcerts]; }
-            } else {
-                concerts = [...sampleConcerts];
-                localStorage.setItem('livenote_local_concerts', JSON.stringify(concerts));
-            }
-            populateYearFilter();
-            applyFilters();
-            if (currentTab === 'stats') renderCharts();
-        }
-
-        function saveLocalData() {
-            localStorage.setItem('livenote_local_concerts', JSON.stringify(concerts));
-        }
-
-        function updateSyncUI(online) {
-            const dot = document.getElementById('syncStatusDot');
-            const text = document.getElementById('syncStatusText');
-            if (online) {
-                dot.className = "w-2 h-2 rounded-full bg-emerald-400 animate-pulse";
-                text.innerText = "Firebase Cloud";
-            } else {
-                dot.className = "w-2 h-2 rounded-full bg-amber-400";
-                text.innerText = "Lokaal Opslag";
-            }
-        }
-
-        let currentTab = 'list';
-
-        window.switchTab = function(tab) {
-            currentTab = tab;
-            const btnList = document.getElementById('tabBtnList');
-            const btnStats = document.getElementById('tabBtnStats');
-            const tabList = document.getElementById('tabList');
-            const tabStats = document.getElementById('tabStats');
-
-            if (tab === 'list') {
-                btnList.className = "flex items-center gap-2 pb-2 px-1 border-b-2 font-medium text-sm border-indigo-500 text-indigo-400 transition-colors";
-                btnStats.className = "flex items-center gap-2 pb-2 px-1 border-b-2 border-transparent text-slate-400 hover:text-slate-200 font-medium text-sm transition-colors";
-                tabList.classList.remove('hidden');
-                tabList.classList.add('flex');
-                tabStats.classList.add('hidden');
-                tabStats.classList.remove('flex');
-            } else {
-                btnStats.className = "flex items-center gap-2 pb-2 px-1 border-b-2 font-medium text-sm border-indigo-500 text-indigo-400 transition-colors";
-                btnList.className = "flex items-center gap-2 pb-2 px-1 border-b-2 border-transparent text-slate-400 hover:text-slate-200 font-medium text-sm transition-colors";
-                tabStats.classList.remove('hidden');
-                tabStats.classList.add('flex');
-                tabList.classList.add('hidden');
-                tabList.classList.remove('flex');
-                renderCharts();
-            }
-        };
-
-        window.populateYearFilter = function() {
-            const yearFilter = document.getElementById('yearFilter');
-            const currentValue = yearFilter.value;
-            const years = [...new Set(concerts.map(c => new Date(c.date).getFullYear()))].sort((a,b) => b - a);
-            
-            let html = '<option value="ALL">Alle Jaren</option>';
-            years.forEach(y => {
-                if(!isNaN(y)) html += `<option value="${y}">${y}</option>`;
-            });
-            yearFilter.innerHTML = html;
-            yearFilter.value = currentValue;
-        };
-
-        window.toggleSortOrder = function() {
-            sortDesc = !sortDesc;
-            const icon = document.getElementById('sortIcon');
-            const text = document.getElementById('sortText');
-            if (sortDesc) {
-                icon.className = "fa-solid fa-arrow-down-wide-short text-indigo-400";
-                text.innerText = "Nieuwst Eerst";
-            } else {
-                icon.className = "fa-solid fa-arrow-up-wide-short text-indigo-400";
-                text.innerText = "Oudst Eerst";
-            }
-            applyFilters();
-        };
-
-        window.applyFilters = function() {
-            const query = document.getElementById('searchInput').value.toLowerCase().trim();
-            const status = document.getElementById('statusFilter').value;
-            const type = document.getElementById('typeFilter').value;
-            const year = document.getElementById('yearFilter').value;
+        // Render Concert Cards
+        function renderConcerts() {
+            const grid = document.getElementById('concerts-grid');
+            const emptyState = document.getElementById('empty-state');
+            const query = document.getElementById('search-input').value.toLowerCase();
+            const sortBy = document.getElementById('sort-select').value;
 
             let filtered = concerts.filter(c => {
-                const matchQuery = !query || 
-                    (c.artist && c.artist.toLowerCase().includes(query)) ||
-                    (c.venue && c.venue.toLowerCase().includes(query)) ||
-                    (c.city && c.city.toLowerCase().includes(query)) ||
-                    (c.festivalName && c.festivalName.toLowerCase().includes(query));
+                const matchesSearch = c.artist.toLowerCase().includes(query) ||
+                                      c.venue.toLowerCase().includes(query) ||
+                                      (c.location && c.location.toLowerCase().includes(query)) ||
+                                      (c.notes && c.notes.toLowerCase().includes(query));
+                
+                const matchesPhotoFilter = photoFilterActive ? (c.photos && c.photos.length > 0) : true;
 
-                const matchStatus = status === 'ALL' || c.status === status;
-                const matchType = type === 'ALL' || c.type === type;
-                const concertYear = new Date(c.date).getFullYear().toString();
-                const matchYear = year === 'ALL' || concertYear === year;
-
-                return matchQuery && matchStatus && matchType && matchYear;
+                return matchesSearch && matchesPhotoFilter;
             });
 
+            // Sorting
             filtered.sort((a, b) => {
-                const dateA = new Date(a.date);
-                const dateB = new Date(b.date);
-                return sortDesc ? dateB - dateA : dateA - dateB;
+                if (sortBy === 'date-desc') return new Date(b.date) - new Date(a.date);
+                if (sortBy === 'date-asc') return new Date(a.date) - new Date(b.date);
+                if (sortBy === 'rating-desc') return b.rating - a.rating;
+                if (sortBy === 'artist-asc') return a.artist.localeCompare(b.artist);
+                return 0;
             });
 
-            renderConcerts(filtered);
-            document.getElementById('totalBadge').innerText = concerts.length;
-        };
-
-        function renderConcerts(items) {
-            const grid = document.getElementById('concertsGrid');
-            const emptyState = document.getElementById('emptyState');
-
-            if (items.length === 0) {
+            if (filtered.length === 0) {
                 grid.innerHTML = '';
                 emptyState.classList.remove('hidden');
-                emptyState.classList.add('flex');
                 return;
             }
 
             emptyState.classList.add('hidden');
-            emptyState.classList.remove('flex');
 
-            grid.innerHTML = items.map(item => {
-                const isAttended = item.status === 'ATTENDED';
-                const formattedDate = new Date(item.date).toLocaleDateString('nl-NL', {
-                    day: 'numeric',
-                    month: 'short',
-                    year: 'numeric'
-                });
-
-                let starsHtml = '';
-                if (isAttended && item.rating > 0) {
-                    starsHtml = '<div class="flex text-amber-400 text-xs gap-0.5 mt-2">';
-                    for (let i = 1; i <= 5; i++) {
-                        starsHtml += `<i class="fa-star ${i <= item.rating ? 'fa-solid' : 'fa-regular text-slate-600'}"></i>`;
-                    }
-                    starsHtml += '</div>';
-                }
-
-                const locationParts = [item.venue, item.city, item.country].filter(Boolean).join(', ');
-
-                return `
-                <div class="bg-slate-800/70 border border-slate-700/60 hover:border-slate-600 rounded-2xl p-5 flex flex-col justify-between transition-all hover:shadow-xl hover:shadow-indigo-500/5 group relative overflow-hidden">
-                    <div class="absolute top-0 left-0 right-0 h-1 ${isAttended ? 'bg-emerald-500' : 'bg-indigo-500'}"></div>
+            grid.innerHTML = filtered.map(c => `
+                <div class="group bg-slate-900/80 border border-slate-800 hover:border-slate-700/80 rounded-3xl overflow-hidden transition duration-300 flex flex-col justify-between hover:shadow-xl hover:shadow-brand-500/5">
                     <div>
-                        <div class="flex items-center justify-between gap-2 mb-3">
-                            <span class="text-xs px-2.5 py-1 rounded-full font-medium ${isAttended ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-indigo-500/10 text-indigo-300 border border-indigo-500/20'}">
-                                <i class="fa-solid ${isAttended ? 'fa-circle-check' : 'fa-clock'} mr-1"></i>
-                                ${isAttended ? 'Geweest' : 'Gepland'}
-                            </span>
-                            ${item.type === 'FESTIVAL' ? `
-                                <span class="text-xs px-2.5 py-1 rounded-full font-medium bg-purple-500/10 text-purple-300 border border-purple-500/20">
-                                    <i class="fa-solid fa-tent mr-1"></i> ${item.festivalName || 'Festival'}
-                                </span>
-                            ` : ''}
-                        </div>
-
-                        <h3 class="text-lg font-bold text-slate-100 group-hover:text-indigo-400 transition-colors line-clamp-1">${escapeHtml(item.artist)}</h3>
-                        
-                        <div class="mt-2 space-y-1 text-xs text-slate-400">
-                            <div class="flex items-center gap-2">
-                                <i class="fa-regular fa-calendar text-slate-500 w-3.5"></i>
-                                <span>${formattedDate}</span>
+                        <!-- Header / Title -->
+                        <div class="p-6 pb-4">
+                            <div class="flex items-start justify-between gap-3 mb-2">
+                                <h3 class="text-xl font-bold text-white group-hover:text-brand-400 transition truncate">${escapeHtml(c.artist)}</h3>
+                                <div class="flex items-center text-amber-400 text-xs font-bold shrink-0 bg-amber-400/10 px-2 py-1 rounded-lg">
+                                    ★ ${c.rating}/5
+                                </div>
                             </div>
-                            ${locationParts ? `
-                            <div class="flex items-center gap-2 line-clamp-1">
-                                <i class="fa-solid fa-location-dot text-slate-500 w-3.5"></i>
-                                <span>${escapeHtml(locationParts)}</span>
-                            </div>` : ''}
+                            
+                            <div class="space-y-1 text-xs text-slate-400">
+                                <p class="flex items-center gap-1.5 font-medium text-slate-300">
+                                    <i data-lucide="map-pin" class="w-3.5 h-3.5 text-slate-500"></i>
+                                    ${escapeHtml(c.venue)} ${c.location ? `• <span class="text-slate-400">${escapeHtml(c.location)}</span>` : ''}
+                                </p>
+                                <p class="flex items-center gap-1.5">
+                                    <i data-lucide="calendar" class="w-3.5 h-3.5 text-slate-500"></i>
+                                    ${formatDate(c.date)}
+                                </p>
+                            </div>
+
+                            ${c.notes ? `<p class="mt-4 text-xs text-slate-400 line-clamp-3 leading-relaxed bg-slate-950/50 p-3 rounded-xl border border-slate-800/50">${escapeHtml(c.notes)}</p>` : ''}
                         </div>
 
-                        ${starsHtml}
-
-                        ${item.notes ? `
-                            <p class="mt-3 text-xs text-slate-400 line-clamp-2 italic bg-slate-900/50 p-2 rounded-lg border border-slate-800">
-                                "${escapeHtml(item.notes)}"
-                            </p>
+                        <!-- Photos Gallery Section -->
+                        ${c.photos && c.photos.length > 0 ? `
+                            <div class="px-6 pb-2">
+                                <p class="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-2">Foto's (${c.photos.length})</p>
+                                <div class="flex gap-2 overflow-x-auto pb-2">
+                                    ${c.photos.map((imgSrc, idx) => `
+                                        <img src="${imgSrc}" onclick="openPhotoModal('${imgSrc}', '${escapeHtml(c.artist)} @ ${escapeHtml(c.venue)}')" class="w-16 h-16 object-cover rounded-xl border border-slate-800 hover:opacity-80 transition cursor-pointer shrink-0">
+                                    `).join('')}
+                                </div>
+                            </div>
                         ` : ''}
                     </div>
 
-                    <div class="mt-4 pt-3 border-t border-slate-700/50 flex items-center justify-between text-xs text-slate-400">
-                        <div>
-                            ${item.setlist ? `
-                                <a href="${escapeHtml(item.setlist)}" target="_blank" class="text-indigo-400 hover:underline flex items-center gap-1">
-                                    <i class="fa-solid fa-list-check"></i> Setlist
-                                </a>
-                            ` : '<span></span>'}
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <button onclick="openConcertModal('${item.id}')" class="p-1.5 hover:bg-slate-700 rounded-lg text-slate-400 hover:text-white transition-colors" title="Bewerken">
-                                <i class="fa-solid fa-pen-to-square"></i>
-                            </button>
-                            <button onclick="deleteConcert('${item.id}')" class="p-1.5 hover:bg-rose-500/20 hover:text-rose-400 rounded-lg text-slate-400 transition-colors" title="Verwijderen">
-                                <i class="fa-solid fa-trash-can"></i>
-                            </button>
-                        </div>
+                    <!-- Footer Actions -->
+                    <div class="p-4 bg-slate-950/40 border-t border-slate-800/60 flex items-center justify-end gap-2">
+                        <button onclick="openEditModal('${c.id}')" class="p-2 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition text-xs flex items-center gap-1.5 font-medium">
+                            <i data-lucide="pencil" class="w-3.5 h-3.5"></i> Bewerken
+                        </button>
+                        <button onclick="deleteConcert('${c.id}')" class="p-2 text-red-400 hover:text-red-300 rounded-lg hover:bg-red-500/10 transition text-xs flex items-center gap-1.5 font-medium">
+                            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                        </button>
                     </div>
                 </div>
-                `;
-            }).join('');
+            `).join('');
+
+            lucide.createIcons();
         }
 
-        let currentRating = 0;
+        // Statistics Calculator
+        function updateStats() {
+            document.getElementById('stat-total').innerText = concerts.length;
 
-        window.openConcertModal = function(id = null) {
-            const modal = document.getElementById('concertModal');
-            const form = document.getElementById('concertForm');
-            form.reset();
-            currentRating = 0;
-            updateStarUI(0);
+            const photosCount = concerts.filter(c => c.photos && c.photos.length > 0).length;
+            document.getElementById('stat-with-photos').innerText = photosCount;
+
+            // Most visited artist calculation
+            const artistCounts = {};
+            const venueCounts = {};
+
+            concerts.forEach(c => {
+                artistCounts[c.artist] = (artistCounts[c.artist] || 0) + 1;
+                venueCounts[c.venue] = (venueCounts[c.venue] || 0) + 1;
+            });
+
+            const topArtist = Object.entries(artistCounts).sort((a,b) => b[1] - a[1])[0];
+            const topVenue = Object.entries(venueCounts).sort((a,b) => b[1] - a[1])[0];
+
+            document.getElementById('stat-top-artist').innerText = topArtist ? topArtist[0] : '-';
+            document.getElementById('stat-top-venue').innerText = topVenue ? topVenue[0] : '-';
+        }
+
+        // Photo Upload Handling (Base64)
+        function handlePhotoSelect(event) {
+            const files = Array.from(event.target.files);
+            
+            files.forEach(file => {
+                if (file.size > 3 * 1024 * 1024) {
+                    alert('Afbeelding mag niet groter zijn dan 3MB.');
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    currentTempPhotos.push(e.target.result);
+                    renderFormPhotoPreviews();
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function renderFormPhotoPreviews() {
+            const container = document.getElementById('form-photo-previews');
+            container.innerHTML = currentTempPhotos.map((img, index) => `
+                <div class="relative group w-14 h-14">
+                    <img src="${img}" class="w-14 h-14 object-cover rounded-xl border border-slate-800">
+                    <button type="button" onclick="removeTempPhoto(${index})" class="absolute -top-1.5 -right-1.5 bg-red-500 text-white rounded-full p-0.5 shadow hover:bg-red-600 transition">
+                        <i data-lucide="x" class="w-3 h-3"></i>
+                    </button>
+                </div>
+            `).join('');
+            lucide.createIcons();
+        }
+
+        function removeTempPhoto(index) {
+            currentTempPhotos.splice(index, 1);
+            renderFormPhotoPreviews();
+        }
+
+        // Modal Controls
+        function openAddModal() {
+            document.getElementById('modal-title').innerText = 'Nieuw Concert Toevoegen';
+            document.getElementById('concert-form').reset();
+            document.getElementById('concert-id').value = '';
+            currentTempPhotos = [];
+            renderFormPhotoPreviews();
+            showModal();
+        }
+
+        function openEditModal(id) {
+            const c = concerts.find(item => item.id === id);
+            if (!c) return;
+
+            document.getElementById('modal-title').innerText = 'Concert Bewerken';
+            document.getElementById('concert-id').value = c.id;
+            document.getElementById('form-artist').value = c.artist;
+            document.getElementById('form-venue').value = c.venue;
+            document.getElementById('form-location').value = c.location || '';
+            document.getElementById('form-date').value = c.date;
+            document.getElementById('form-rating').value = c.rating;
+            document.getElementById('form-notes').value = c.notes || '';
+            
+            currentTempPhotos = c.photos ? [...c.photos] : [];
+            renderFormPhotoPreviews();
+            showModal();
+        }
+
+        function showModal() {
+            const modal = document.getElementById('concert-modal');
+            const container = document.getElementById('modal-container');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                container.classList.remove('scale-95');
+                container.classList.add('scale-100');
+            }, 10);
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('concert-modal');
+            const container = document.getElementById('modal-container');
+            container.classList.remove('scale-100');
+            container.classList.add('scale-95');
+            modal.classList.add('opacity-0');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 200);
+        }
+
+        // Form Submit
+        function handleFormSubmit(event) {
+            event.preventDefault();
+
+            const id = document.getElementById('concert-id').value;
+            const artist = document.getElementById('form-artist').value;
+            const venue = document.getElementById('form-venue').value;
+            const location = document.getElementById('form-location').value;
+            const date = document.getElementById('form-date').value;
+            const rating = parseInt(document.getElementById('form-rating').value);
+            const notes = document.getElementById('form-notes').value;
 
             if (id) {
-                const concert = concerts.find(c => c.id === id);
-                if (concert) {
-                    document.getElementById('modalTitle').innerText = "Concert Bewerken";
-                    document.getElementById('concertId').value = concert.id;
-                    document.getElementById('formArtist').value = concert.artist || '';
-                    document.getElementById('formDate').value = concert.date || '';
-                    document.getElementById('formStatus').value = concert.status || 'ATTENDED';
-                    document.getElementById('formType').value = concert.type || 'CONCERT';
-                    document.getElementById('formFestival').value = concert.festivalName || '';
-                    document.getElementById('formVenue').value = concert.venue || '';
-                    document.getElementById('formCity').value = concert.city || '';
-                    document.getElementById('formCountry').value = concert.country || '';
-                    document.getElementById('formSetlist').value = concert.setlist || '';
-                    document.getElementById('formNotes').value = concert.notes || '';
-                    
-                    currentRating = concert.rating || 0;
-                    updateStarUI(currentRating);
+                // Update
+                const index = concerts.findIndex(c => c.id === id);
+                if (index !== -1) {
+                    concerts[index] = { id, artist, venue, location, date, rating, notes, photos: currentTempPhotos };
                 }
             } else {
-                document.getElementById('modalTitle').innerText = "Nieuw Concert Toevoegen";
-                document.getElementById('concertId').value = '';
-                document.getElementById('formDate').valueAsDate = new Date();
+                // Create
+                const newConcert = {
+                    id: Date.now().toString(),
+                    artist,
+                    venue,
+                    location,
+                    date,
+                    rating,
+                    notes,
+                    photos: currentTempPhotos
+                };
+                concerts.unshift(newConcert);
             }
 
-            toggleRatingVisibility();
-            toggleFestivalVisibility();
-            modal.classList.remove('hidden');
-        };
-
-        window.closeConcertModal = function() {
-            document.getElementById('concertModal').classList.add('hidden');
-        };
-
-        window.toggleRatingVisibility = function() {
-            const status = document.getElementById('formStatus').value;
-            const container = document.getElementById('ratingContainer');
-            if (status === 'PLANNED') container.classList.add('hidden');
-            else container.classList.remove('hidden');
-        };
-
-        window.toggleFestivalVisibility = function() {
-            const type = document.getElementById('formType').value;
-            const container = document.getElementById('festivalNameContainer');
-            if (type === 'FESTIVAL') container.classList.remove('hidden');
-            else container.classList.add('hidden');
-        };
-
-        window.setRating = function(rating) {
-            currentRating = rating;
-            document.getElementById('formRating').value = rating;
-            updateStarUI(rating);
-        };
-
-        function updateStarUI(rating) {
-            const stars = document.querySelectorAll('#starRating i');
-            const ratingText = document.getElementById('ratingText');
-            
-            stars.forEach((star, index) => {
-                star.className = index < rating ? 'fa-star fa-solid text-amber-400' : 'fa-star fa-solid text-slate-600';
-            });
-
-            const labels = ["Geen score", "Matig", "Voldoende", "Goed", "Geweldig", "Legendarisch!"];
-            ratingText.innerText = labels[rating] || "Geen score";
+            saveData();
+            renderConcerts();
+            closeModal();
         }
 
-        window.handleFormSubmit = async function(e) {
-            e.preventDefault();
+        // Delete Entry
+        function deleteConcert(id) {
+            concerts = concerts.filter(c => c.id !== id);
+            saveData();
+            renderConcerts();
+        }
 
-            const id = document.getElementById('concertId').value;
-            const concertData = {
-                artist: document.getElementById('formArtist').value.trim(),
-                date: document.getElementById('formDate').value,
-                status: document.getElementById('formStatus').value,
-                type: document.getElementById('formType').value,
-                festivalName: document.getElementById('formType').value === 'FESTIVAL' ? document.getElementById('formFestival').value.trim() : '',
-                venue: document.getElementById('formVenue').value.trim(),
-                city: document.getElementById('formCity').value.trim(),
-                country: document.getElementById('formCountry').value.trim(),
-                rating: document.getElementById('formStatus').value === 'ATTENDED' ? parseInt(document.getElementById('formRating').value || 0) : 0,
-                setlist: document.getElementById('formSetlist').value.trim(),
-                notes: document.getElementById('formNotes').value.trim(),
-                updatedAt: new Date().toISOString()
-            };
-
-            if (isFirebaseActive && db) {
-                try {
-                    const appId = typeof __app_id !== 'undefined' ? __app_id : 'livenote-app';
-                    if (id) {
-                        const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'concerts', id);
-                        await updateDoc(docRef, concertData);
-                        showToast("Concert bijgewerkt!");
-                    } else {
-                        const colRef = collection(db, 'artifacts', appId, 'public', 'data', 'concerts');
-                        await addDoc(colRef, concertData);
-                        showToast("Nieuw concert toegevoegd!");
-                    }
-                } catch(err) {
-                    console.error("Error saving doc:", err);
-                    showToast("Fout bij opslaan in Firebase", "error");
-                }
+        // Toggle Photo Filter
+        function togglePhotoFilter() {
+            photoFilterActive = !photoFilterActive;
+            const btn = document.getElementById('photo-filter-btn');
+            if (photoFilterActive) {
+                btn.classList.add('bg-brand-500/20', 'border-brand-500', 'text-brand-400');
             } else {
-                if (id) {
-                    const idx = concerts.findIndex(c => c.id === id);
-                    if (idx !== -1) concerts[idx] = { ...concerts[idx], ...concertData };
-                    showToast("Concert lokaal bijgewerkt!");
-                } else {
-                    const newConcert = { id: 'local-' + Date.now(), ...concertData };
-                    concerts.push(newConcert);
-                    showToast("Concert lokaal toegevoegd!");
-                }
-                saveLocalData();
-                populateYearFilter();
-                applyFilters();
+                btn.classList.remove('bg-brand-500/20', 'border-brand-500', 'text-brand-400');
             }
+            renderConcerts();
+        }
 
-            closeConcertModal();
-        };
+        // Fullscreen Photo Modal
+        function openPhotoModal(imgSrc, caption) {
+            const modal = document.getElementById('photo-modal');
+            document.getElementById('modal-photo-img').src = imgSrc;
+            document.getElementById('modal-photo-caption').innerText = caption;
+            modal.classList.remove('hidden');
+            setTimeout(() => modal.classList.remove('opacity-0'), 10);
+        }
 
-        window.deleteConcert = async function(id) {
-            if (!confirm("Weet je zeker dat je dit concert wilt verwijderen?")) return;
+        function closePhotoModal() {
+            const modal = document.getElementById('photo-modal');
+            modal.classList.add('opacity-0');
+            setTimeout(() => modal.classList.add('hidden'), 200);
+        }
 
-            if (isFirebaseActive && db) {
-                try {
-                    const appId = typeof __app_id !== 'undefined' ? __app_id : 'livenote-app';
-                    const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'concerts', id);
-                    await deleteDoc(docRef);
-                    showToast("Concert verwijderd!");
-                } catch(err) {
-                    console.error("Error deleting doc:", err);
-                    showToast("Fout bij verwijderen", "error");
-                }
-            } else {
-                concerts = concerts.filter(c => c.id !== id);
-                saveLocalData();
-                populateYearFilter();
-                applyFilters();
-                showToast("Concert lokaal verwijderd!");
-            }
-        };
-
-        window.openFirebaseModal = function() {
-            const configStr = localStorage.getItem('livenote_fb_config');
-            if (configStr) {
-                try {
-                    const cfg = JSON.parse(configStr);
-                    document.getElementById('fbApiKey').value = cfg.apiKey || '';
-                    document.getElementById('fbAuthDomain').value = cfg.authDomain || '';
-                    document.getElementById('fbProjectId').value = cfg.projectId || '';
-                    document.getElementById('fbAppId').value = cfg.appId || '';
-                } catch(e) {}
-            }
-            document.getElementById('firebaseModal').classList.remove('hidden');
-        };
-
-        window.closeFirebaseModal = function() {
-            document.getElementById('firebaseModal').classList.add('hidden');
-        };
-
-        window.saveFirebaseSettings = function() {
-            const apiKey = document.getElementById('fbApiKey').value.trim();
-            const authDomain = document.getElementById('fbAuthDomain').value.trim();
-            const projectId = document.getElementById('fbProjectId').value.trim();
-            const appId = document.getElementById('fbAppId').value.trim();
-
-            if (!apiKey || !projectId) {
-                showToast("Vul minimaal API Key en Project ID in", "error");
-                return;
-            }
-
-            const cfg = { apiKey, authDomain, projectId, appId };
-            localStorage.setItem('livenote_fb_config', JSON.stringify(cfg));
-            closeFirebaseModal();
-            showToast("Instellingen opgeslagen! Herladen...");
-            setTimeout(() => window.location.reload(), 1000);
-        };
-
-        window.clearFirebaseSettings = function() {
-            localStorage.removeItem('livenote_fb_config');
-            closeFirebaseModal();
-            showToast("Opgeslagen instellingen gewist.");
-            setTimeout(() => window.location.reload(), 1000);
-        };
-
-        let yearChartInstance = null;
-        let artistChartInstance = null;
-        let venueChartInstance = null;
-        let typeChartInstance = null;
-
-        function renderCharts() {
-            const attended = concerts.filter(c => c.status === 'ATTENDED');
-            const planned = concerts.filter(c => c.status === 'PLANNED');
-            const uniqueArtists = new Set(concerts.map(c => c.artist?.trim().toLowerCase())).size;
-            const festivals = concerts.filter(c => c.type === 'FESTIVAL');
-
-            document.getElementById('statTotalAttended').innerText = attended.length;
-            document.getElementById('statTotalPlanned').innerText = planned.length;
-            document.getElementById('statUniqueArtists').innerText = uniqueArtists;
-            document.getElementById('statTotalFestivals').innerText = festivals.length;
-
-            const chartFontColor = '#94a3b8';
-            const gridColor = '#334155';
-
-            // Chart 1
-            const yearCounts = {};
-            concerts.forEach(c => {
-                const y = new Date(c.date).getFullYear();
-                if (!isNaN(y)) yearCounts[y] = (yearCounts[y] || 0) + 1;
-            });
-            const sortedYears = Object.keys(yearCounts).sort();
-            
-            if (yearChartInstance) yearChartInstance.destroy();
-            const ctxYear = document.getElementById('chartYears').getContext('2d');
-            yearChartInstance = new Chart(ctxYear, {
-                type: 'bar',
-                data: {
-                    labels: sortedYears,
-                    datasets: [{
-                        label: 'Aantal Concerten',
-                        data: sortedYears.map(y => yearCounts[y]),
-                        backgroundColor: 'rgba(99, 102, 241, 0.7)',
-                        borderColor: '#6366f1',
-                        borderWidth: 1,
-                        borderRadius: 6
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        x: { ticks: { color: chartFontColor }, grid: { display: false } },
-                        y: { ticks: { color: chartFontColor, precision: 0 }, grid: { color: gridColor } }
-                    }
-                }
-            });
-
-            // Chart 2
-            const artistCounts = {};
-            concerts.forEach(c => {
-                if (c.artist) artistCounts[c.artist] = (artistCounts[c.artist] || 0) + 1;
-            });
-            const sortedArtists = Object.entries(artistCounts).sort((a,b) => b[1] - a[1]).slice(0, 5);
-
-            if (artistChartInstance) artistChartInstance.destroy();
-            const ctxArtist = document.getElementById('chartArtists').getContext('2d');
-            artistChartInstance = new Chart(ctxArtist, {
-                type: 'bar',
-                data: {
-                    labels: sortedArtists.map(a => a[0]),
-                    datasets: [{
-                        label: 'Keer Gezien',
-                        data: sortedArtists.map(a => a[1]),
-                        backgroundColor: 'rgba(245, 158, 11, 0.7)',
-                        borderColor: '#f59e0b',
-                        borderWidth: 1,
-                        borderRadius: 6
-                    }]
-                },
-                options: {
-                    indexAxis: 'y',
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        x: { ticks: { color: chartFontColor, precision: 0 }, grid: { color: gridColor } },
-                        y: { ticks: { color: chartFontColor }, grid: { display: false } }
-                    }
-                }
-            });
-
-            // Chart 3
-            const venueCounts = {};
-            concerts.forEach(c => {
-                if (c.venue) venueCounts[c.venue] = (venueCounts[c.venue] || 0) + 1;
-            });
-            const sortedVenues = Object.entries(venueCounts).sort((a,b) => b[1] - a[1]).slice(0, 5);
-
-            if (venueChartInstance) venueChartInstance.destroy();
-            const ctxVenue = document.getElementById('chartVenues').getContext('2d');
-            venueChartInstance = new Chart(ctxVenue, {
-                type: 'bar',
-                data: {
-                    labels: sortedVenues.map(v => v[0]),
-                    datasets: [{
-                        label: 'Bezoeken',
-                        data: sortedVenues.map(v => v[1]),
-                        backgroundColor: 'rgba(244, 63, 94, 0.7)',
-                        borderColor: '#f43f5e',
-                        borderWidth: 1,
-                        borderRadius: 6
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        x: { ticks: { color: chartFontColor }, grid: { display: false } },
-                        y: { ticks: { color: chartFontColor, precision: 0 }, grid: { color: gridColor } }
-                    }
-                }
-            });
-
-            // Chart 4
-            const typeCounts = { CONCERT: 0, FESTIVAL: 0 };
-            concerts.forEach(c => {
-                if (c.type === 'FESTIVAL') typeCounts.FESTIVAL++;
-                else typeCounts.CONCERT++;
-            });
-
-            if (typeChartInstance) typeChartInstance.destroy();
-            const ctxType = document.getElementById('chartType').getContext('2d');
-            typeChartInstance = new Chart(ctxType, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Los Concert', 'Festival'],
-                    datasets: [{
-                        data: [typeCounts.CONCERT, typeCounts.FESTIVAL],
-                        backgroundColor: ['rgba(99, 102, 241, 0.8)', 'rgba(168, 85, 247, 0.8)'],
-                        borderColor: ['#6366f1', '#a855f7'],
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { position: 'bottom', labels: { color: chartFontColor, padding: 15 } }
-                    }
-                }
-            });
+        // Utilities
+        function formatDate(dateStr) {
+            if (!dateStr) return '';
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('nl-BE', { day: 'numeric', month: 'short', year: 'numeric' });
         }
 
         function escapeHtml(str) {
             if (!str) return '';
-            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+            return str.replace(/[&<>"']/g, function(m) {
+                return {
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    '"': '&quot;',
+                    "'": '&#039;'
+                }[m];
+            });
         }
-
-        function showToast(message, type = 'success') {
-            const container = document.getElementById('toastContainer');
-            const toast = document.createElement('div');
-            const bgColor = type === 'error' ? 'bg-rose-600' : 'bg-emerald-600';
-            
-            toast.className = `${bgColor} text-white px-4 py-2.5 rounded-xl shadow-lg text-xs font-semibold flex items-center gap-2 animate-in slide-in-from-bottom-5 duration-200`;
-            toast.innerHTML = `<i class="fa-solid ${type === 'error' ? 'fa-triangle-exclamation' : 'fa-circle-check'}"></i> ${message}`;
-            
-            container.appendChild(toast);
-            setTimeout(() => {
-                toast.classList.add('opacity-0', 'transition-opacity', 'duration-300');
-                setTimeout(() => toast.remove(), 300);
-            }, 3000);
-        }
-
-        window.onload = function() {
-            window.initApp();
-        };
     </script>
 </body>
 </html>
