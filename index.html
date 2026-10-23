@@ -70,12 +70,6 @@
             </div>
 
             <div class="flex items-center gap-2 sm:gap-3 flex-wrap justify-end">
-                <!-- Location Manager Button -->
-                <button onclick="openVenueManagerModal()" class="flex items-center gap-2 px-3 py-2 text-xs font-medium rounded-xl border border-slate-700 bg-slate-800/80 hover:bg-slate-700 text-slate-300 transition-all">
-                    <i class="fa-solid fa-building-gear text-rose-400"></i>
-                    <span class="hidden md:inline">Locaties Beheren</span>
-                </button>
-
                 <!-- Data Source Indicator & Config -->
                 <button id="configFirebaseBtn" onclick="openFirebaseModal()" class="flex items-center gap-2 px-3 py-2 text-xs font-medium rounded-xl border transition-all duration-200 border-slate-700 bg-slate-800/80 hover:bg-slate-700 text-slate-300">
                     <span id="syncStatusDot" class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
@@ -128,15 +122,19 @@
 
         <!-- Navigation Tabs -->
         <div class="flex items-center justify-between border-b border-slate-800 pb-2">
-            <nav class="flex gap-2 sm:gap-6" aria-label="Tabs">
-                <button id="tabBtnList" onclick="switchTab('list')" class="flex items-center gap-2 pb-2 px-1 border-b-2 font-medium text-sm border-indigo-500 text-indigo-400 transition-colors">
+            <nav class="flex gap-2 sm:gap-6 overflow-x-auto" aria-label="Tabs">
+                <button id="tabBtnList" onclick="switchTab('list')" class="flex items-center gap-2 pb-2 px-1 border-b-2 font-medium text-sm border-indigo-500 text-indigo-400 transition-colors whitespace-nowrap">
                     <i class="fa-solid fa-list-ul"></i>
                     Concerten & Festivals
                     <span id="totalBadge" class="ml-1 px-2 py-0.5 text-xs rounded-full bg-indigo-950 text-indigo-300 border border-indigo-800/50">0</span>
                 </button>
-                <button id="tabBtnStats" onclick="switchTab('stats')" class="flex items-center gap-2 pb-2 px-1 border-b-2 border-transparent text-slate-400 hover:text-slate-200 font-medium text-sm transition-colors">
+                <button id="tabBtnStats" onclick="switchTab('stats')" class="flex items-center gap-2 pb-2 px-1 border-b-2 border-transparent text-slate-400 hover:text-slate-200 font-medium text-sm transition-colors whitespace-nowrap">
                     <i class="fa-solid fa-chart-pie"></i>
                     Statistieken
+                </button>
+                <button id="tabBtnVenues" onclick="switchTab('venues')" class="flex items-center gap-2 pb-2 px-1 border-b-2 border-transparent text-slate-400 hover:text-slate-200 font-medium text-sm transition-colors whitespace-nowrap">
+                    <i class="fa-solid fa-building-gear text-rose-400"></i>
+                    Locaties Beheren
                 </button>
             </nav>
         </div>
@@ -293,6 +291,104 @@
             </div>
         </div>
 
+        <!-- TAB 3: VENUE MANAGER TAB -->
+        <div id="tabVenues" class="hidden flex-col gap-6">
+            <div class="bg-slate-800/60 rounded-2xl p-6 border border-slate-800 space-y-6">
+                <div>
+                    <h3 class="text-lg font-bold text-slate-100 flex items-center gap-2">
+                        <i class="fa-solid fa-building-gear text-rose-400"></i> Beheer Ingevoerde Locaties & Zalen
+                    </h3>
+                    <p class="text-xs text-slate-400 mt-1">Pas locatienamen aan voor alle concerten tegelijk of vanaf een specifieke datum (naamsverandering van een zaal).</p>
+                </div>
+
+                <!-- Edit Location Form Section -->
+                <div id="venueEditSection" class="hidden bg-slate-900/80 border border-indigo-500/30 p-5 rounded-2xl space-y-4">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+                        <h4 class="text-xs font-bold uppercase tracking-wider text-indigo-400 flex items-center gap-1.5">
+                            <i class="fa-solid fa-pen-to-square"></i> Locatie Bewerken: <span id="editingVenueOriginalName" class="text-white font-normal underline"></span>
+                        </h4>
+                        <button type="button" onclick="cancelVenueEdit()" class="text-xs text-slate-400 hover:text-white">
+                            <i class="fa-solid fa-xmark mr-1"></i> Annuleren
+                        </button>
+                    </div>
+
+                    <form id="venueEditForm" onsubmit="handleVenueEditSubmit(event)" class="space-y-4">
+                        <input type="hidden" id="editVenueOriginal">
+
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-xs font-medium text-slate-300 mb-1">Nieuwe Zaalnaam</label>
+                                <input type="text" id="editVenueName" required class="w-full px-3.5 py-2 bg-slate-800 border border-slate-700 rounded-xl text-slate-100 text-sm focus:outline-none focus:border-indigo-500">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-300 mb-1">Stad</label>
+                                <input type="text" id="editVenueCity" class="w-full px-3.5 py-2 bg-slate-800 border border-slate-700 rounded-xl text-slate-100 text-sm focus:outline-none focus:border-indigo-500">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-300 mb-1">Land</label>
+                                <input type="text" id="editVenueCountry" class="w-full px-3.5 py-2 bg-slate-800 border border-slate-700 rounded-xl text-slate-100 text-sm focus:outline-none focus:border-indigo-500">
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-800/80 p-4 rounded-xl border border-slate-700/80 space-y-2">
+                            <label class="block text-xs font-semibold text-slate-200">Toepassingsbereik / Wijzigingsmodus</label>
+                            
+                            <div class="flex flex-col sm:flex-row gap-4">
+                                <label class="flex items-center gap-2 text-xs text-slate-300 cursor-pointer">
+                                    <input type="radio" name="venueEditScope" value="ALL" checked onchange="toggleVenueDateInput()" class="text-indigo-600 focus:ring-indigo-500">
+                                    <span>Overal aanpassen (Alle datumreeksen)</span>
+                                </label>
+                                <label class="flex items-center gap-2 text-xs text-slate-300 cursor-pointer">
+                                    <input type="radio" name="venueEditScope" value="FROM_DATE" onchange="toggleVenueDateInput()" class="text-indigo-600 focus:ring-indigo-500">
+                                    <span>Vanaf een specifieke datum (bijv. naamsverandering)</span>
+                                </label>
+                            </div>
+
+                            <div id="venueFromDateContainer" class="hidden mt-3 pt-3 border-t border-slate-700/60">
+                                <label class="block text-xs text-slate-400 mb-1">Pas nieuwe naam toe op optredens vanaf datum:</label>
+                                <input type="date" id="editVenueFromDate" class="px-3.5 py-2 bg-slate-900 border border-slate-700 rounded-xl text-slate-100 text-xs focus:outline-none focus:border-indigo-500">
+                                <p class="text-[11px] text-slate-400 mt-1">Concerten vóór deze datum behouden de oude locatienaam.</p>
+                            </div>
+                        </div>
+
+                        <div class="flex justify-end gap-3 pt-1">
+                            <button type="button" onclick="cancelVenueEdit()" class="px-4 py-2 text-xs font-medium text-slate-300 hover:bg-slate-800 rounded-xl transition-colors">Annuleren</button>
+                            <button type="submit" class="px-5 py-2 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-500 rounded-xl shadow-md shadow-indigo-600/30 transition-all">Wijzigingen Doorvoeren</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Locations Table List -->
+                <div class="space-y-4">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <h4 class="text-xs font-bold uppercase tracking-wider text-slate-300">
+                            Overzicht Ingevoerde Locaties
+                        </h4>
+                        <div class="relative w-full sm:w-64">
+                            <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
+                            <input type="text" id="venueSearchFilter" oninput="renderVenueManagerList()" placeholder="Filter op locatie of stad..." class="w-full pl-8 pr-3 py-1.5 bg-slate-900 border border-slate-700 rounded-xl text-slate-200 text-xs focus:outline-none focus:border-indigo-500">
+                        </div>
+                    </div>
+
+                    <div class="border border-slate-800 rounded-2xl overflow-hidden bg-slate-950/40 shadow-inner">
+                        <table class="w-full text-left text-xs text-slate-300">
+                            <thead class="bg-slate-800/80 text-slate-400 font-semibold border-b border-slate-800">
+                                <tr>
+                                    <th class="p-3.5">Locatie / Venue</th>
+                                    <th class="p-3.5">Stad / Land</th>
+                                    <th class="p-3.5 text-center">Optredens</th>
+                                    <th class="p-3.5 text-right">Actie</th>
+                                </tr>
+                            </thead>
+                            <tbody id="venueManagerTableBody" class="divide-y divide-slate-800/60">
+                                <!-- Dynamic venue rows -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </main>
 
     <!-- Modal: Add/Edit Single Concert -->
@@ -323,7 +419,7 @@
                     </div>
                     <div>
                         <label class="block text-xs font-medium text-slate-300 mb-1">Status</label>
-                        <select id="formStatus" onchange="toggleRatingVisibility()" class="w-full px-3.5 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-slate-100 text-sm focus:outline-none focus:border-indigo-500">
+                        <select id="formStatus" class="w-full px-3.5 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-slate-100 text-sm focus:outline-none focus:border-indigo-500">
                             <option value="ATTENDED">Geweest (Afgelopen)</option>
                             <option value="PLANNED">Gepland (Toekomst)</option>
                         </select>
@@ -358,26 +454,6 @@
                     <div>
                         <label class="block text-xs font-medium text-slate-300 mb-1">Land</label>
                         <input type="text" id="formCountry" placeholder="bijv. Nederland" class="w-full px-3.5 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-slate-100 text-sm focus:outline-none focus:border-indigo-500">
-                    </div>
-                </div>
-
-                <div id="ratingContainer">
-                    <label class="block text-xs font-medium text-slate-300 mb-1">Beoordeling</label>
-                    <div class="flex items-center justify-between bg-slate-800 p-2.5 rounded-xl border border-slate-700">
-                        <div class="flex items-center gap-2">
-                            <div id="starRating" class="flex gap-1 text-2xl text-slate-600 cursor-pointer">
-                                <i class="fa-star fa-solid" onclick="setRating(1)"></i>
-                                <i class="fa-star fa-solid" onclick="setRating(2)"></i>
-                                <i class="fa-star fa-solid" onclick="setRating(3)"></i>
-                                <i class="fa-star fa-solid" onclick="setRating(4)"></i>
-                                <i class="fa-star fa-solid" onclick="setRating(5)"></i>
-                            </div>
-                            <span id="ratingText" class="text-xs text-slate-400 ml-2">Geen score</span>
-                        </div>
-                        <button type="button" onclick="setRating(0)" class="text-xs text-rose-400 hover:text-rose-300 hover:bg-slate-700/60 px-2.5 py-1 rounded-lg transition-colors flex items-center gap-1">
-                            <i class="fa-solid fa-trash-can"></i> Wissen
-                        </button>
-                        <input type="hidden" id="formRating" value="0">
                     </div>
                 </div>
 
@@ -550,106 +626,6 @@
         </div>
     </div>
 
-    <!-- Modal: Location / Venue Manager -->
-    <div id="venueManagerModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-3xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-            <div class="px-6 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-950/50">
-                <div>
-                    <h3 class="text-lg font-bold text-slate-100 flex items-center gap-2">
-                        <i class="fa-solid fa-building-gear text-rose-400"></i> Beheer Ingevoerde Locaties & Zalen
-                    </h3>
-                    <p class="text-xs text-slate-400 mt-0.5">Pas locatienamen aan voor alle concerten tegelijk of vanaf een specifieke datum (naamsverandering).</p>
-                </div>
-                <button onclick="closeVenueManagerModal()" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors">
-                    <i class="fa-solid fa-xmark text-lg"></i>
-                </button>
-            </div>
-
-            <div class="p-6 overflow-y-auto space-y-6 flex-1">
-                <!-- Edit Location Form (Hidden by default until a location is clicked) -->
-                <div id="venueEditSection" class="hidden bg-slate-800/80 border border-indigo-500/30 p-4 rounded-xl space-y-4">
-                    <div class="flex items-center justify-between border-b border-slate-700/60 pb-2">
-                        <h4 class="text-xs font-bold uppercase tracking-wider text-indigo-400 flex items-center gap-1.5">
-                            <i class="fa-solid fa-pen-to-square"></i> Locatie Bewerken: <span id="editingVenueOriginalName" class="text-white font-normal underline"></span>
-                        </h4>
-                        <button type="button" onclick="cancelVenueEdit()" class="text-xs text-slate-400 hover:text-white">Annuleren</button>
-                    </div>
-
-                    <form id="venueEditForm" onsubmit="handleVenueEditSubmit(event)" class="space-y-4">
-                        <input type="hidden" id="editVenueOriginal">
-
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                            <div>
-                                <label class="block text-[11px] font-medium text-slate-300 mb-1">Nieuwe Zaalnaam</label>
-                                <input type="text" id="editVenueName" required class="w-full px-3 py-1.5 bg-slate-900 border border-slate-700 rounded-lg text-slate-100 text-xs focus:outline-none focus:border-indigo-500">
-                            </div>
-                            <div>
-                                <label class="block text-[11px] font-medium text-slate-300 mb-1">Stad</label>
-                                <input type="text" id="editVenueCity" class="w-full px-3 py-1.5 bg-slate-900 border border-slate-700 rounded-lg text-slate-100 text-xs focus:outline-none focus:border-indigo-500">
-                            </div>
-                            <div>
-                                <label class="block text-[11px] font-medium text-slate-300 mb-1">Land</label>
-                                <input type="text" id="editVenueCountry" class="w-full px-3 py-1.5 bg-slate-900 border border-slate-700 rounded-lg text-slate-100 text-xs focus:outline-none focus:border-indigo-500">
-                            </div>
-                        </div>
-
-                        <div class="bg-slate-900/60 p-3 rounded-lg border border-slate-800 space-y-2">
-                            <label class="block text-xs font-semibold text-slate-300">Toepassingsbereik / Wijzigingsmodus</label>
-                            
-                            <div class="flex flex-col sm:flex-row gap-3">
-                                <label class="flex items-center gap-2 text-xs text-slate-300 cursor-pointer">
-                                    <input type="radio" name="venueEditScope" value="ALL" checked onchange="toggleVenueDateInput()" class="text-indigo-600 focus:ring-indigo-500">
-                                    <span>Overal aanpassen (Alle datumreeksen)</span>
-                                </label>
-                                <label class="flex items-center gap-2 text-xs text-slate-300 cursor-pointer">
-                                    <input type="radio" name="venueEditScope" value="FROM_DATE" onchange="toggleVenueDateInput()" class="text-indigo-600 focus:ring-indigo-500">
-                                    <span>Vanaf een specifieke datum (bijv. naamsverandering)</span>
-                                </label>
-                            </div>
-
-                            <div id="venueFromDateContainer" class="hidden mt-2 pt-2 border-t border-slate-800">
-                                <label class="block text-[11px] text-slate-400 mb-1">Pas nieuwe naam toe op optredens vanaf datum:</label>
-                                <input type="date" id="editVenueFromDate" class="px-3 py-1 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 text-xs focus:outline-none focus:border-indigo-500">
-                                <p class="text-[10px] text-slate-500 mt-1">Concerten vóór deze datum behouden de oude locatienaam.</p>
-                            </div>
-                        </div>
-
-                        <div class="flex justify-end gap-2 pt-1">
-                            <button type="button" onclick="cancelVenueEdit()" class="px-3 py-1.5 text-xs text-slate-300 hover:bg-slate-800 rounded-lg">Annuleren</button>
-                            <button type="submit" class="px-4 py-1.5 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-500 rounded-lg shadow-md shadow-indigo-600/30">Wijzigingen Doorvoeren</button>
-                        </div>
-                    </form>
-                </div>
-
-                <!-- Locations Table List -->
-                <div class="space-y-3">
-                    <div class="flex items-center justify-between">
-                        <h4 class="text-xs font-bold uppercase tracking-wider text-slate-300">
-                            Overzicht Ingevoerde Locaties
-                        </h4>
-                        <input type="text" id="venueSearchFilter" oninput="renderVenueManagerList()" placeholder="Filter locaties..." class="px-3 py-1 bg-slate-800 border border-slate-700 rounded-lg text-slate-200 text-xs focus:outline-none focus:border-indigo-500 w-48">
-                    </div>
-
-                    <div class="border border-slate-800 rounded-xl overflow-hidden bg-slate-950/40">
-                        <table class="w-full text-left text-xs text-slate-300">
-                            <thead class="bg-slate-800/80 text-slate-400 font-semibold border-b border-slate-800">
-                                <tr>
-                                    <th class="p-3">Locatie / Venue</th>
-                                    <th class="p-3">Stad / Land</th>
-                                    <th class="p-3 text-center">Optredens</th>
-                                    <th class="p-3 text-right">Actie</th>
-                                </tr>
-                            </thead>
-                            <tbody id="venueManagerTableBody" class="divide-y divide-slate-800/60">
-                                <!-- Dynamic venue rows -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <!-- Modal: Firebase Settings -->
     <div id="firebaseModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-6 shadow-2xl space-y-4">
@@ -724,7 +700,6 @@
                 type: "CONCERT",
                 festivalName: "",
                 status: "ATTENDED",
-                rating: 5,
                 notes: "Fantastische show! Onberispelijke geluidskwaliteit.",
                 setlist: "https://www.setlist.fm"
             },
@@ -738,7 +713,6 @@
                 type: "FESTIVAL",
                 festivalName: "Rock Werchter",
                 status: "ATTENDED",
-                rating: 4,
                 notes: "2.5 uur knallen!",
                 setlist: ""
             }
@@ -781,9 +755,7 @@
                         populateYearFilter();
                         applyFilters();
                         if (currentTab === 'stats') renderCharts();
-                        if (!document.getElementById('venueManagerModal').classList.contains('hidden')) {
-                            renderVenueManagerList();
-                        }
+                        if (currentTab === 'venues') renderVenueManagerList();
                     }, (error) => {
                         console.warn("Firestore listener error:", error);
                         showPermissionBanner();
@@ -822,9 +794,7 @@
             populateYearFilter();
             applyFilters();
             if (currentTab === 'stats') renderCharts();
-            if (!document.getElementById('venueManagerModal').classList.contains('hidden')) {
-                renderVenueManagerList();
-            }
+            if (currentTab === 'venues') renderVenueManagerList();
         }
 
         function saveLocalData() {
@@ -849,24 +819,37 @@
             currentTab = tab;
             const btnList = document.getElementById('tabBtnList');
             const btnStats = document.getElementById('tabBtnStats');
+            const btnVenues = document.getElementById('tabBtnVenues');
+
             const tabList = document.getElementById('tabList');
             const tabStats = document.getElementById('tabStats');
+            const tabVenues = document.getElementById('tabVenues');
 
-            if (tab === 'list') {
-                btnList.className = "flex items-center gap-2 pb-2 px-1 border-b-2 font-medium text-sm border-indigo-500 text-indigo-400 transition-colors";
-                btnStats.className = "flex items-center gap-2 pb-2 px-1 border-b-2 border-transparent text-slate-400 hover:text-slate-200 font-medium text-sm transition-colors";
-                tabList.classList.remove('hidden');
-                tabList.classList.add('flex');
-                tabStats.classList.add('hidden');
-                tabStats.classList.remove('flex');
-            } else {
-                btnStats.className = "flex items-center gap-2 pb-2 px-1 border-b-2 font-medium text-sm border-indigo-500 text-indigo-400 transition-colors";
-                btnList.className = "flex items-center gap-2 pb-2 px-1 border-b-2 border-transparent text-slate-400 hover:text-slate-200 font-medium text-sm transition-colors";
-                tabStats.classList.remove('hidden');
+            const activeStyle = "flex items-center gap-2 pb-2 px-1 border-b-2 font-medium text-sm border-indigo-500 text-indigo-400 transition-colors whitespace-nowrap";
+            const inactiveStyle = "flex items-center gap-2 pb-2 px-1 border-b-2 border-transparent text-slate-400 hover:text-slate-200 font-medium text-sm transition-colors whitespace-nowrap";
+
+            btnList.className = tab === 'list' ? activeStyle : inactiveStyle;
+            btnStats.className = tab === 'stats' ? activeStyle : inactiveStyle;
+            btnVenues.className = tab === 'venues' ? activeStyle : inactiveStyle;
+
+            tabList.classList.toggle('hidden', tab !== 'list');
+            if (tab === 'list') tabList.classList.add('flex'); else tabList.classList.remove('flex');
+
+            tabStats.classList.toggle('hidden', tab !== 'stats');
+            if (tab === 'stats') {
                 tabStats.classList.add('flex');
-                tabList.classList.add('hidden');
-                tabList.classList.remove('flex');
                 renderCharts();
+            } else {
+                tabStats.classList.remove('flex');
+            }
+
+            tabVenues.classList.toggle('hidden', tab !== 'venues');
+            if (tab === 'venues') {
+                tabVenues.classList.add('flex');
+                cancelVenueEdit();
+                renderVenueManagerList();
+            } else {
+                tabVenues.classList.remove('flex');
             }
         };
 
@@ -917,7 +900,6 @@
             } else {
                 statusSelect.value = 'ATTENDED';
             }
-            toggleRatingVisibility();
         };
 
         // KEYBOARD NAVIGATION FOR AUTOCOMPLETE
@@ -1108,6 +1090,23 @@
             });
         });
 
+        // Compute artist counts and chronological occurrence numbers
+        function calculateArtistOccurrences() {
+            const artistMap = new Map();
+            const chronological = [...concerts].sort((a, b) => new Date(a.date) - new Date(b.date));
+            const occurrenceMap = new Map();
+
+            chronological.forEach(c => {
+                if (!c.artist) return;
+                const key = c.artist.trim().toLowerCase();
+                const currentCount = (artistMap.get(key) || 0) + 1;
+                artistMap.set(key, currentCount);
+                occurrenceMap.set(c.id, currentCount);
+            });
+
+            return { artistMap, occurrenceMap };
+        }
+
         window.applyFilters = function() {
             const query = document.getElementById('searchInput').value.toLowerCase().trim();
             const status = document.getElementById('statusFilter').value;
@@ -1153,6 +1152,8 @@
             emptyState.classList.add('hidden');
             emptyState.classList.remove('flex');
 
+            const { artistMap, occurrenceMap } = calculateArtistOccurrences();
+
             grid.innerHTML = items.map(item => {
                 const isUpcoming = isFutureDate(item.date);
                 const isAttended = item.status === 'ATTENDED' && !isUpcoming;
@@ -1163,16 +1164,15 @@
                     year: 'numeric'
                 });
 
-                let starsHtml = '';
-                if (item.status === 'ATTENDED' && item.rating > 0) {
-                    starsHtml = '<div class="flex text-amber-400 text-xs gap-0.5 mt-2">';
-                    for (let i = 1; i <= 5; i++) {
-                        starsHtml += `<i class="fa-star ${i <= item.rating ? 'fa-solid' : 'fa-regular text-slate-600'}"></i>`;
-                    }
-                    starsHtml += '</div>';
-                }
-
                 const locationParts = [item.venue, item.city, item.country].filter(Boolean).join(', ');
+
+                const artistKey = (item.artist || '').trim().toLowerCase();
+                const totalTimesSeen = artistMap.get(artistKey) || 0;
+                const seqNumber = occurrenceMap.get(item.id) || 1;
+
+                const countBadgeHtml = (totalTimesSeen >= 2) 
+                    ? `<span class="text-slate-400 font-normal text-sm ml-1.5">(${escapeHtml('#' + seqNumber)})</span>`
+                    : '';
 
                 return `
                 <div class="bg-slate-800/70 border border-slate-700/60 hover:border-slate-600 rounded-2xl p-5 flex flex-col justify-between transition-all hover:shadow-xl hover:shadow-indigo-500/5 group relative overflow-hidden">
@@ -1190,7 +1190,10 @@
                             ` : ''}
                         </div>
 
-                        <h3 class="text-lg font-bold text-slate-100 group-hover:text-indigo-400 transition-colors line-clamp-1">${escapeHtml(item.artist)}</h3>
+                        <h3 class="text-lg font-bold text-slate-100 group-hover:text-indigo-400 transition-colors line-clamp-1 flex items-baseline">
+                            <span>${escapeHtml(item.artist)}</span>
+                            ${countBadgeHtml}
+                        </h3>
                         
                         <div class="mt-2 space-y-1 text-xs text-slate-400">
                             <div class="flex items-center gap-2">
@@ -1203,8 +1206,6 @@
                                 <span>${escapeHtml(locationParts)}</span>
                             </div>` : ''}
                         </div>
-
-                        ${starsHtml}
 
                         ${item.notes ? `
                             <p class="mt-3 text-xs text-slate-400 line-clamp-2 italic bg-slate-900/50 p-2 rounded-lg border border-slate-800">
@@ -1235,14 +1236,10 @@
             }).join('');
         }
 
-        let currentRating = 0;
-
         window.openConcertModal = function(id = null) {
             const modal = document.getElementById('concertModal');
             const form = document.getElementById('concertForm');
             form.reset();
-            currentRating = 0;
-            updateStarUI(0);
 
             if (id) {
                 const concert = concerts.find(c => c.id === id);
@@ -1259,9 +1256,6 @@
                     document.getElementById('formCountry').value = concert.country || '';
                     document.getElementById('formSetlist').value = concert.setlist || '';
                     document.getElementById('formNotes').value = concert.notes || '';
-                    
-                    currentRating = concert.rating || 0;
-                    updateStarUI(currentRating);
                 }
             } else {
                 document.getElementById('modalTitle').innerText = "Nieuw Concert Toevoegen";
@@ -1271,20 +1265,12 @@
                 autoUpdateStatusFromDate('formDate', 'formStatus');
             }
 
-            toggleRatingVisibility();
             toggleFestivalVisibility();
             modal.classList.remove('hidden');
         };
 
         window.closeConcertModal = function() {
             document.getElementById('concertModal').classList.add('hidden');
-        };
-
-        window.toggleRatingVisibility = function() {
-            const status = document.getElementById('formStatus').value;
-            const container = document.getElementById('ratingContainer');
-            if (status === 'PLANNED') container.classList.add('hidden');
-            else container.classList.remove('hidden');
         };
 
         window.toggleFestivalVisibility = function() {
@@ -1294,40 +1280,11 @@
             else container.classList.add('hidden');
         };
 
-        window.setRating = function(rating) {
-            currentRating = rating;
-            document.getElementById('formRating').value = rating;
-            updateStarUI(rating);
-        };
-
-        function updateStarUI(rating) {
-            const stars = document.querySelectorAll('#starRating i');
-            const ratingText = document.getElementById('ratingText');
-            
-            stars.forEach((star, index) => {
-                star.className = index < rating ? 'fa-star fa-solid text-amber-400' : 'fa-star fa-solid text-slate-600';
-            });
-
-            const labels = ["Geen score", "Matig", "Voldoende", "Goed", "Geweldig", "Legendarisch!"];
-            ratingText.innerText = labels[rating] || "Geen score";
-        }
-
         /* LOCATION / VENUE MANAGER LOGIC */
-        window.openVenueManagerModal = function() {
-            cancelVenueEdit();
-            renderVenueManagerList();
-            document.getElementById('venueManagerModal').classList.remove('hidden');
-        };
-
-        window.closeVenueManagerModal = function() {
-            document.getElementById('venueManagerModal').classList.add('hidden');
-        };
-
         window.renderVenueManagerList = function() {
             const tbody = document.getElementById('venueManagerTableBody');
             const filterVal = (document.getElementById('venueSearchFilter').value || '').toLowerCase().trim();
 
-            // Collect unique venues with stats
             const venueMap = new Map();
 
             concerts.forEach(c => {
@@ -1367,11 +1324,11 @@
 
             tbody.innerHTML = filtered.map(v => `
                 <tr class="hover:bg-slate-800/40 transition-colors">
-                    <td class="p-3 font-medium text-slate-100">${escapeHtml(v.originalName)}</td>
-                    <td class="p-3 text-slate-400">${escapeHtml([v.city, v.country].filter(Boolean).join(', ') || '-')}</td>
-                    <td class="p-3 text-center"><span class="px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 font-mono text-[11px]">${v.count}</span></td>
-                    <td class="p-3 text-right">
-                        <button onclick="startVenueEdit('${escapeHtml(v.originalName)}', '${escapeHtml(v.city)}', '${escapeHtml(v.country)}')" class="px-2.5 py-1 text-xs font-semibold bg-indigo-600/20 hover:bg-indigo-600/40 text-indigo-300 border border-indigo-500/30 rounded-lg transition-colors flex items-center gap-1 ml-auto">
+                    <td class="p-3.5 font-medium text-slate-100">${escapeHtml(v.originalName)}</td>
+                    <td class="p-3.5 text-slate-400">${escapeHtml([v.city, v.country].filter(Boolean).join(', ') || '-')}</td>
+                    <td class="p-3.5 text-center"><span class="px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-300 font-mono text-xs">${v.count}</span></td>
+                    <td class="p-3.5 text-right">
+                        <button onclick="startVenueEdit('${escapeHtml(v.originalName)}', '${escapeHtml(v.city)}', '${escapeHtml(v.country)}')" class="px-3 py-1.5 text-xs font-semibold bg-indigo-600/20 hover:bg-indigo-600/40 text-indigo-300 border border-indigo-500/30 rounded-lg transition-colors flex items-center gap-1.5 ml-auto">
                             <i class="fa-solid fa-pen-to-square"></i> Bewerken
                         </button>
                     </td>
@@ -1393,6 +1350,7 @@
             toggleVenueDateInput();
 
             document.getElementById('venueEditSection').classList.remove('hidden');
+            document.getElementById('venueEditSection').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         };
 
         window.cancelVenueEdit = function() {
@@ -1426,8 +1384,6 @@
             }
 
             const origLower = originalName.toLowerCase();
-            let affectedCount = 0;
-
             const updatesToPerform = [];
 
             concerts.forEach(c => {
@@ -1530,23 +1486,10 @@
                     </button>
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <div class="sm:col-span-2 relative">
-                        <label class="block text-[11px] text-slate-400 mb-1">Artiest / Band <span class="text-rose-400">*</span></label>
-                        <input type="text" id="${artistInputId}" data-field="artist" oninput="handleArtistAutocomplete(this, '${artistDropdownId}')" onkeydown="handleKeyNavigation(event, '${artistDropdownId}')" required placeholder="bijv. Balthazar" autocomplete="off" class="w-full px-3 py-1.5 bg-slate-900 border border-slate-700 rounded-lg text-slate-100 text-xs focus:outline-none focus:border-teal-500">
-                        <div id="${artistDropdownId}" class="hidden absolute left-0 right-0 top-full mt-1 bg-slate-800 border border-slate-700 rounded-xl shadow-xl z-50 max-h-36 overflow-y-auto"></div>
-                    </div>
-                    <div>
-                        <label class="block text-[11px] text-slate-400 mb-1">Beoordeling (0-5)</label>
-                        <select data-field="rating" class="w-full px-3 py-1.5 bg-slate-900 border border-slate-700 rounded-lg text-slate-100 text-xs focus:outline-none focus:border-teal-500">
-                            <option value="0">Geen score</option>
-                            <option value="1">1 - Matig</option>
-                            <option value="2">2 - Voldoende</option>
-                            <option value="3">3 - Goed</option>
-                            <option value="4">4 - Geweldig</option>
-                            <option value="5">5 - Legendarisch!</option>
-                        </select>
-                    </div>
+                <div class="relative">
+                    <label class="block text-[11px] text-slate-400 mb-1">Artiest / Band <span class="text-rose-400">*</span></label>
+                    <input type="text" id="${artistInputId}" data-field="artist" oninput="handleArtistAutocomplete(this, '${artistDropdownId}')" onkeydown="handleKeyNavigation(event, '${artistDropdownId}')" required placeholder="bijv. Balthazar" autocomplete="off" class="w-full px-3 py-1.5 bg-slate-900 border border-slate-700 rounded-lg text-slate-100 text-xs focus:outline-none focus:border-teal-500">
+                    <div id="${artistDropdownId}" class="hidden absolute left-0 right-0 top-full mt-1 bg-slate-800 border border-slate-700 rounded-xl shadow-xl z-50 max-h-36 overflow-y-auto"></div>
                 </div>
 
                 <div>
@@ -1589,11 +1532,9 @@
 
             artistRows.forEach(row => {
                 const artistInput = row.querySelector('[data-field="artist"]');
-                const ratingSelect = row.querySelector('[data-field="rating"]');
                 const notesInput = row.querySelector('[data-field="notes"]');
 
                 const artist = artistInput ? artistInput.value.trim() : '';
-                const rating = ratingSelect ? parseInt(ratingSelect.value) : 0;
                 const notes = notesInput ? notesInput.value.trim() : '';
 
                 if (artist) {
@@ -1615,7 +1556,6 @@
                         venue: venue,
                         city: city,
                         country: country,
-                        rating: status === 'ATTENDED' ? rating : 0,
                         setlist: setlistUrl,
                         notes: cleanNotes,
                         updatedAt: new Date().toISOString()
@@ -1711,22 +1651,9 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <div>
-                        <label class="block text-[11px] text-slate-400 mb-1">Beoordeling (0-5)</label>
-                        <select data-field="rating" class="w-full px-3 py-1.5 bg-slate-900 border border-slate-700 rounded-lg text-slate-100 text-xs focus:outline-none focus:border-purple-500">
-                            <option value="0">Geen score</option>
-                            <option value="1">1 - Matig</option>
-                            <option value="2">2 - Voldoende</option>
-                            <option value="3">3 - Goed</option>
-                            <option value="4">4 - Geweldig</option>
-                            <option value="5">5 - Legendarisch!</option>
-                        </select>
-                    </div>
-                    <div class="sm:col-span-2">
-                        <label class="block text-[11px] text-slate-400 mb-1">Notities / Setlist Link (Optioneel)</label>
-                        <input type="text" data-field="notes" placeholder="bijv. Main stage, geweldige lichtshow" class="w-full px-3 py-1.5 bg-slate-900 border border-slate-700 rounded-lg text-slate-100 text-xs focus:outline-none focus:border-purple-500">
-                    </div>
+                <div>
+                    <label class="block text-[11px] text-slate-400 mb-1">Notities / Setlist Link (Optioneel)</label>
+                    <input type="text" data-field="notes" placeholder="bijv. Main stage, geweldige lichtshow" class="w-full px-3 py-1.5 bg-slate-900 border border-slate-700 rounded-lg text-slate-100 text-xs focus:outline-none focus:border-purple-500">
                 </div>
             `;
             container.appendChild(div);
@@ -1775,12 +1702,10 @@
             artistRows.forEach(row => {
                 const artistInput = row.querySelector('[data-field="artist"]');
                 const dateInput = row.querySelector('[data-field="date"]');
-                const ratingSelect = row.querySelector('[data-field="rating"]');
                 const notesInput = row.querySelector('[data-field="notes"]');
 
                 const artist = artistInput ? artistInput.value.trim() : '';
                 const date = dateInput ? dateInput.value : mainDate;
-                const rating = ratingSelect ? parseInt(ratingSelect.value) : 0;
                 const notes = notesInput ? notesInput.value.trim() : '';
 
                 if (artist) {
@@ -1802,7 +1727,6 @@
                         venue: venue,
                         city: city,
                         country: country,
-                        rating: status === 'ATTENDED' ? rating : 0,
                         setlist: setlistUrl,
                         notes: cleanNotes,
                         updatedAt: new Date().toISOString()
@@ -1860,7 +1784,6 @@
                 venue: document.getElementById('formVenue').value.trim(),
                 city: document.getElementById('formCity').value.trim(),
                 country: document.getElementById('formCountry').value.trim(),
-                rating: statusVal === 'ATTENDED' ? parseInt(document.getElementById('formRating').value || 0) : 0,
                 setlist: document.getElementById('formSetlist').value.trim(),
                 notes: document.getElementById('formNotes').value.trim(),
                 updatedAt: new Date().toISOString()
@@ -2004,7 +1927,6 @@
             const planned = concerts.filter(c => c.status === 'PLANNED');
             const uniqueArtists = new Set(concerts.map(c => c.artist?.trim().toLowerCase())).size;
 
-            // Unique venues calculation
             const uniqueLocationsSet = new Set();
             concerts.forEach(c => {
                 if (c.venue) uniqueLocationsSet.add(c.venue.trim().toLowerCase());
