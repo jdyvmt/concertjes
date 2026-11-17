@@ -70,11 +70,16 @@
             </div>
 
             <div class="flex items-center gap-2 sm:gap-3 flex-wrap justify-end">
-                <!-- Google Auth & Sync Status Button -->
+                <!-- Auth Action Button (Google Sign-In / Sign-Out) -->
                 <button id="authActionBtn" onclick="handleAuthClick()" class="flex items-center gap-2 px-3 py-2 text-xs font-medium rounded-xl border transition-all duration-200 border-slate-700 bg-slate-800/80 hover:bg-slate-700 text-slate-300">
                     <span id="syncStatusDot" class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
                     <span id="syncStatusText">Inloggen...</span>
                     <i id="authIcon" class="fa-solid fa-right-to-bracket text-slate-400 ml-1"></i>
+                </button>
+
+                <!-- Config / Settings Button -->
+                <button onclick="openFirebaseModal()" class="p-2 text-xs font-medium rounded-xl border transition-all duration-200 border-slate-700 bg-slate-800/80 hover:bg-slate-700 text-slate-300" title="Sync & Firebase Instellingen">
+                    <i class="fa-solid fa-gear"></i>
                 </button>
 
                 <!-- Concert Bulk Input Button -->
@@ -747,8 +752,6 @@
                         } else {
                             isFirebaseActive = false;
                             updateSyncUI(false);
-                            // Automatisch inlogvenster openen als er geen gebruiker is
-                            signInWithGoogle();
                         }
                     });
 
@@ -773,7 +776,6 @@
             } catch (err) {
                 console.error("Google sign-in error:", err);
                 showToast("Inloggen mislukt of geannuleerd", "error");
-                fallbackToLocal();
             }
         };
 
@@ -854,11 +856,11 @@
             const icon = document.getElementById('authIcon');
             if (online) {
                 dot.className = "w-2 h-2 rounded-full bg-emerald-400 animate-pulse";
-                text.innerText = userInfo ? userInfo.split('@')[0] : "Cloud Verbonden";
+                text.innerText = userInfo ? userInfo.split('@')[0] : "Ingelogd";
                 icon.className = "fa-solid fa-right-from-bracket text-slate-400 ml-1";
             } else {
                 dot.className = "w-2 h-2 rounded-full bg-amber-400";
-                text.innerText = "Inloggen / Setup";
+                text.innerText = "Inloggen";
                 icon.className = "fa-solid fa-right-to-bracket text-slate-400 ml-1";
             }
         }
