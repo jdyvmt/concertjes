@@ -70,11 +70,11 @@
             </div>
 
             <div class="flex items-center gap-2 sm:gap-3 flex-wrap justify-end">
-                <!-- Data Source Indicator & Config -->
-                <button id="configFirebaseBtn" onclick="openFirebaseModal()" class="flex items-center gap-2 px-3 py-2 text-xs font-medium rounded-xl border transition-all duration-200 border-slate-700 bg-slate-800/80 hover:bg-slate-700 text-slate-300">
+                <!-- Google Auth & Sync Status Button -->
+                <button id="authActionBtn" onclick="handleAuthClick()" class="flex items-center gap-2 px-3 py-2 text-xs font-medium rounded-xl border transition-all duration-200 border-slate-700 bg-slate-800/80 hover:bg-slate-700 text-slate-300">
                     <span id="syncStatusDot" class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
-                    <span id="syncStatusText" class="hidden md:inline">Demo / Lokaal</span>
-                    <i class="fa-solid fa-gear text-slate-400 ml-1"></i>
+                    <span id="syncStatusText">Inloggen...</span>
+                    <i id="authIcon" class="fa-solid fa-right-to-bracket text-slate-400 ml-1"></i>
                 </button>
 
                 <!-- Concert Bulk Input Button -->
@@ -107,12 +107,12 @@
             <div class="flex items-center gap-3">
                 <i class="fa-solid fa-triangle-exclamation text-amber-400 text-xl"></i>
                 <div>
-                    <p class="font-semibold">Firebase Permissiefout of Geen Verbinding</p>
-                    <p class="text-amber-300/80 text-xs">Controleer je Firebase Firestore Security Rules of API sleutels. De app werkt momenteel in lokale opslag.</p>
+                    <p class="font-semibold">Geen Toegang of Permissiefout</p>
+                    <p class="text-amber-300/80 text-xs">Controleer of je bent ingelogd met het juiste Google-account of of je Firestore Security Rules juist staan.</p>
                 </div>
             </div>
-            <button onclick="openFirebaseModal()" class="px-3 py-1.5 bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 border border-amber-500/40 rounded-lg whitespace-nowrap transition-colors">
-                Bekijk Instellingen
+            <button onclick="handleAuthClick()" class="px-3 py-1.5 bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 border border-amber-500/40 rounded-lg whitespace-nowrap transition-colors">
+                Opnieuw Inloggen
             </button>
         </div>
     </div>
@@ -675,12 +675,14 @@
     <!-- MAIN JAVASCRIPT APP LOGIC -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, onSnapshot, addDoc, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         let concerts = [];
         let firebaseApp = null;
         let db = null;
+        let auth = null;
+        let currentUser = null;
         let isFirebaseActive = false;
         let sortDesc = true;
         let bulkRowCounter = 0;
@@ -732,34 +734,22 @@
                 try {
                     firebaseApp = initializeApp(configToUse);
                     db = getFirestore(firebaseApp);
-                    const auth = getAuth(firebaseApp);
+                    auth = getAuth(firebaseApp);
                     
-                    try {
-                        await signInAnonymously(auth);
-                    } catch (authErr) {
-                        console.warn("Anonieme auth overgeslagen of mislukt:", authErr);
-                    }
-                    
-                    isFirebaseActive = true;
-                    updateSyncUI(true);
-
-                    const appId = typeof __app_id !== 'undefined' ? __app_id : 'livenote-app';
-                    const colRef = collection(db, 'artifacts', appId, 'public', 'data', 'concerts');
-
-                    onSnapshot(colRef, (snapshot) => {
-                        concerts = snapshot.docs.map(doc => ({
-                            id: doc.id,
-                            ...doc.data()
-                        }));
-                        hidePermissionBanner();
-                        populateYearFilter();
-                        applyFilters();
-                        if (currentTab === 'stats') renderCharts();
-                        if (currentTab === 'venues') renderVenueManagerList();
-                    }, (error) => {
-                        console.warn("Firestore listener error:", error);
-                        showPermissionBanner();
-                        fallbackToLocal();
+                    // Luister naar inlogstatus
+                    onAuthStateChanged(auth, (user) => {
+                        currentUser = user;
+                        if (user) {
+                            isFirebaseActive = true;
+                            updateSyncUI(true, user.email || user.displayName);
+                            hidePermissionBanner();
+                            startFirestoreListener();
+                        } else {
+                            isFirebaseActive = false;
+                            updateSyncUI(false);
+                            // Automatisch inlogvenster openen als er geen gebruiker is
+                            signInWithGoogle();
+                        }
                     });
 
                 } catch (err) {
@@ -770,6 +760,63 @@
                 fallbackToLocal();
             }
         };
+
+        window.signInWithGoogle = async function() {
+            if (!auth) {
+                openFirebaseModal();
+                return;
+            }
+            const provider = new GoogleAuthProvider();
+            try {
+                await signInWithPopup(auth, provider);
+                showToast("Succesvol ingelogd met Google!");
+            } catch (err) {
+                console.error("Google sign-in error:", err);
+                showToast("Inloggen mislukt of geannuleerd", "error");
+                fallbackToLocal();
+            }
+        };
+
+        window.handleAuthClick = async function() {
+            if (currentUser) {
+                if (confirm("Wil je uitloggen?")) {
+                    try {
+                        await signOut(auth);
+                        currentUser = null;
+                        showToast("Uitgelogd.");
+                        window.location.reload();
+                    } catch(e) {}
+                }
+            } else {
+                if (isFirebaseActive && auth) {
+                    signInWithGoogle();
+                } else {
+                    openFirebaseModal();
+                }
+            }
+        };
+
+        function startFirestoreListener() {
+            if (!db) return;
+            const appId = typeof __app_id !== 'undefined' ? __app_id : 'livenote-app';
+            const colRef = collection(db, 'artifacts', appId, 'public', 'data', 'concerts');
+
+            onSnapshot(colRef, (snapshot) => {
+                concerts = snapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+                hidePermissionBanner();
+                populateYearFilter();
+                applyFilters();
+                if (currentTab === 'stats') renderCharts();
+                if (currentTab === 'venues') renderVenueManagerList();
+            }, (error) => {
+                console.warn("Firestore listener error:", error);
+                showPermissionBanner();
+                showToast("Geen toestemming (Permissiefout)", "error");
+            });
+        }
 
         function showPermissionBanner() {
             const banner = document.getElementById('permissionBanner');
@@ -801,15 +848,18 @@
             localStorage.setItem('livenote_local_concerts', JSON.stringify(concerts));
         }
 
-        function updateSyncUI(online) {
+        function updateSyncUI(online, userInfo = "") {
             const dot = document.getElementById('syncStatusDot');
             const text = document.getElementById('syncStatusText');
+            const icon = document.getElementById('authIcon');
             if (online) {
                 dot.className = "w-2 h-2 rounded-full bg-emerald-400 animate-pulse";
-                text.innerText = "Firebase Cloud";
+                text.innerText = userInfo ? userInfo.split('@')[0] : "Cloud Verbonden";
+                icon.className = "fa-solid fa-right-from-bracket text-slate-400 ml-1";
             } else {
                 dot.className = "w-2 h-2 rounded-full bg-amber-400";
-                text.innerText = "Lokaal Opslag";
+                text.innerText = "Inloggen / Setup";
+                icon.className = "fa-solid fa-right-to-bracket text-slate-400 ml-1";
             }
         }
 
@@ -880,7 +930,6 @@
             applyFilters();
         };
 
-        // Helper: Check if date string is in future
         function isFutureDate(dateStr) {
             if (!dateStr) return false;
             const inputDate = new Date(dateStr);
@@ -889,7 +938,6 @@
             return inputDate > today;
         }
 
-        // Auto update status element based on input date
         window.autoUpdateStatusFromDate = function(dateInputId, statusSelectId) {
             const dateVal = document.getElementById(dateInputId).value;
             const statusSelect = document.getElementById(statusSelectId);
@@ -902,7 +950,6 @@
             }
         };
 
-        // KEYBOARD NAVIGATION FOR AUTOCOMPLETE
         window.handleKeyNavigation = function(e, dropdownId) {
             const dropdown = document.getElementById(dropdownId);
             if (!dropdown || dropdown.classList.contains('hidden')) return;
@@ -937,7 +984,6 @@
             }
         };
 
-        // Artist Autocomplete Helper
         window.handleArtistAutocomplete = function(inputEl, dropdownId) {
             const val = inputEl.value.trim().toLowerCase();
             const dropdown = document.getElementById(dropdownId);
@@ -979,7 +1025,6 @@
             if (dropdown) dropdown.classList.add('hidden');
         };
 
-        // Venue Autocomplete Helper
         window.handleVenueAutocomplete = function(inputEl, dropdownId, cityInputId, countryInputId) {
             const val = inputEl.value.trim().toLowerCase();
             const dropdown = document.getElementById(dropdownId);
@@ -1036,7 +1081,6 @@
             document.getElementById(dropdownId).classList.add('hidden');
         };
 
-        // Festival Autocomplete Helper
         window.handleFestivalAutocomplete = function(inputEl, dropdownId, venueInputId, cityInputId, countryInputId) {
             const val = inputEl.value.trim().toLowerCase();
             const dropdown = document.getElementById(dropdownId);
@@ -1080,7 +1124,6 @@
             document.getElementById(dropdownId).classList.add('hidden');
         };
 
-        // Close dropdowns on outside click
         document.addEventListener('click', function(e) {
             const activeDropdowns = document.querySelectorAll('[id$="Dropdown"]');
             activeDropdowns.forEach(dropdown => {
@@ -1090,7 +1133,6 @@
             });
         });
 
-        // Compute artist counts and chronological occurrence numbers
         function calculateArtistOccurrences() {
             const artistMap = new Map();
             const chronological = [...concerts].sort((a, b) => new Date(a.date) - new Date(b.date));
@@ -1280,7 +1322,6 @@
             else container.classList.add('hidden');
         };
 
-        /* LOCATION / VENUE MANAGER LOGIC */
         window.renderVenueManagerList = function() {
             const tbody = document.getElementById('venueManagerTableBody');
             const filterVal = (document.getElementById('venueSearchFilter').value || '').toLowerCase().trim();
@@ -1445,7 +1486,6 @@
             renderVenueManagerList();
         };
 
-        /* SINGLE VENUE CONCERT BULK FUNCTIONS */
         window.openConcertBulkModal = function() {
             const modal = document.getElementById('concertBulkModal');
             document.getElementById('concertBulkForm').reset();
@@ -1597,7 +1637,6 @@
             closeConcertBulkModal();
         };
 
-        /* BULK FESTIVAL FUNCTIONS */
         window.openFestivalBulkModal = function() {
             const modal = document.getElementById('festivalBulkModal');
             document.getElementById('festivalBulkForm').reset();
@@ -1888,7 +1927,6 @@
             setTimeout(() => window.location.reload(), 1000);
         };
 
-        // EXPANDABLE CHARTS CONTROLS
         window.toggleExpandArtists = function() {
             isArtistsExpanded = !isArtistsExpanded;
             const btn = document.querySelector('#toggleArtistsBtn span');
@@ -1941,7 +1979,6 @@
             const chartFontColor = '#94a3b8';
             const gridColor = '#334155';
 
-            // Chart 1: Years
             const yearCounts = {};
             concerts.forEach(c => {
                 const y = new Date(c.date).getFullYear();
@@ -1975,7 +2012,6 @@
                 }
             });
 
-            // Chart 2: Artists (Expandable for >= 2 entries)
             const artistCounts = {};
             concerts.forEach(c => {
                 if (c.artist) artistCounts[c.artist] = (artistCounts[c.artist] || 0) + 1;
@@ -2015,7 +2051,6 @@
                 }
             });
 
-            // Chart 3: Venues (Expandable for >= 2 entries)
             const venueCounts = {};
             concerts.forEach(c => {
                 const name = c.type === 'FESTIVAL' ? (c.festivalName || c.venue) : c.venue;
@@ -2055,7 +2090,6 @@
                 }
             });
 
-            // Chart 4: Type Distribution
             const typeCounts = { CONCERT: 0, FESTIVAL: 0 };
             concerts.forEach(c => {
                 if (c.type === 'FESTIVAL') typeCounts.FESTIVAL++;
