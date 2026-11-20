@@ -70,10 +70,10 @@
             </div>
 
             <div class="flex items-center gap-2 sm:gap-3 flex-wrap justify-end">
-                <!-- Auth Action Button (Google Sign-In / Sign-Out) -->
+                <!-- Auth Action Button (Direct Google Sign-In / Sign-Out) -->
                 <button id="authActionBtn" onclick="handleAuthClick()" class="flex items-center gap-2 px-3 py-2 text-xs font-medium rounded-xl border transition-all duration-200 border-slate-700 bg-slate-800/80 hover:bg-slate-700 text-slate-300">
-                    <span id="syncStatusDot" class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
-                    <span id="syncStatusText">Inloggen...</span>
+                    <span id="syncStatusDot" class="w-2 h-2 rounded-full bg-amber-400"></span>
+                    <span id="syncStatusText">Inloggen</span>
                     <i id="authIcon" class="fa-solid fa-right-to-bracket text-slate-400 ml-1"></i>
                 </button>
 
@@ -116,7 +116,7 @@
                     <p class="text-amber-300/80 text-xs">Controleer of je bent ingelogd met het juiste Google-account of of je Firestore Security Rules juist staan.</p>
                 </div>
             </div>
-            <button onclick="handleAuthClick()" class="px-3 py-1.5 bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 border border-amber-500/40 rounded-lg whitespace-nowrap transition-colors">
+            <button onclick="signInWithGoogle()" class="px-3 py-1.5 bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 border border-amber-500/40 rounded-lg whitespace-nowrap transition-colors">
                 Opnieuw Inloggen
             </button>
         </div>
@@ -689,6 +689,7 @@
         let auth = null;
         let currentUser = null;
         let isFirebaseActive = false;
+        let isConfigured = false;
         let sortDesc = true;
         let bulkRowCounter = 0;
         let concertBulkRowCounter = 0;
@@ -740,8 +741,8 @@
                     firebaseApp = initializeApp(configToUse);
                     db = getFirestore(firebaseApp);
                     auth = getAuth(firebaseApp);
+                    isConfigured = true;
                     
-                    // Luister naar inlogstatus
                     onAuthStateChanged(auth, (user) => {
                         currentUser = user;
                         if (user) {
@@ -775,7 +776,7 @@
                 showToast("Succesvol ingelogd met Google!");
             } catch (err) {
                 console.error("Google sign-in error:", err);
-                showToast("Inloggen mislukt of geannuleerd", "error");
+                showToast("Inloggen mislukt of geannuleerd: " + (err.message || ""), "error");
             }
         };
 
@@ -790,7 +791,7 @@
                     } catch(e) {}
                 }
             } else {
-                if (isFirebaseActive && auth) {
+                if (isConfigured && auth) {
                     signInWithGoogle();
                 } else {
                     openFirebaseModal();
